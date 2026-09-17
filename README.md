@@ -1,15 +1,28 @@
 # Birthday Reminder
 
-Your students' birthdays, and a window that finds you instead of the other way round. Export two
-files from iSAMS, open the app, and a whole year of birthdays is set up in **under five minutes**.
+Your students' birthdays, and a window that finds you instead of the other way round. Export three
+reports from iSAMS, drop them on the app, and a whole year of birthdays is set up in **under five
+minutes**.
 
 > ## ⚠️ You need iSAMS
 >
 > This is built around exports from **iSAMS**, the school management system. **If your school does
 > not use iSAMS, this will not work** — there is nowhere for it to get your class from.
 >
-> The photographs are the part that cannot be replaced: they come out of the iSAMS **Student ID
-> Badge** report, and nothing else produces that file.
+> It takes **three reports**, all exported as Excel from Student Manager ▸ Selected Students ▸
+> Exporting and Reports:
+>
+> | Report | What it gives you |
+> |---|---|
+> | **Export Wizard file** | names, dates of birth, and **preferred names** — what students actually go by |
+> | **Students Simple Report** | names, dates of birth, **year group, form, house and tutor initials** |
+> | **Student ID Badge** | the **photographs** |
+>
+> Either list file works on its own, but give it both: with only the Export Wizard you lose year
+> group, form, house and which students are your tutees; with only the Students Simple Report you
+> lose preferred names. Where two students share a name, only the Students Simple Report can tell
+> them apart — without it their photographs are a guess. The photographs are the part nothing else
+> can replace: only the iSAMS Student ID Badge report produces that file.
 >
 > If your school runs a different MIS it *may* still manage the names and dates of birth — the reader takes an
 > Excel file and looks for `Surname` and `Forename` columns, accepting the usual variants
@@ -94,9 +107,8 @@ wherever the folder was when you installed it.
 
 ## Requirements
 
-- **iSAMS** — see the notice at the top. The **Export Wizard** file carries the names and dates of
-  birth; the **Student ID Badge** report carries the photographs. Choose **Excel** whenever iSAMS
-  offers you a format.
+- **iSAMS**, and three reports from it — see the table at the top. Choose **Excel** every time iSAMS
+  offers you a format: the app reads `.xlsx` and `.xls`, not PDF or Word.
 - **macOS.** Built from Swift and Python, both already on your Mac: nothing to install first,
   nothing to keep up to date.
 
