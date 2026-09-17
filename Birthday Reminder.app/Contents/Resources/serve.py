@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# Copyright (c) 2026 Dr Daniel Mompel Riera
+# Licensed under the GNU Affero General Public License v3.0.
+# Free to use and change; if you pass on a changed version, or let anyone
+# use it over a network, you must publish your source under the same licence.
+# Commercial use needs my permission: dmompelriera@nlcsjeju.kr
 """Small local server so the calendar page can manage its own profiles.
 
     serve.py <base_dir>          prints "READY <url>" then serves until idle

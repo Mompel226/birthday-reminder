@@ -1,4 +1,9 @@
 #!/bin/bash
+# Copyright (c) 2026 Dr Daniel Mompel Riera
+# Licensed under the GNU Affero General Public License v3.0.
+# Free to use and change; if you pass on a changed version, or let anyone
+# use it over a network, you must publish your source under the same licence.
+# Commercial use needs my permission: dmompelriera@nlcsjeju.kr
 # The one icon. Opens the calendar in its own clean window - not a browser tab -
 # with the background helper running so the page can switch classes, import and edit.
 SELF="${BASH_SOURCE[0]}"; while [ -L "$SELF" ]; do SELF="$(readlink "$SELF")"; done

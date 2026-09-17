@@ -1,4 +1,9 @@
 #!/bin/bash
+# Copyright (c) 2026 Dr Daniel Mompel Riera
+# Licensed under the GNU Affero General Public License v3.0.
+# Free to use and change; if you pass on a changed version, or let anyone
+# use it over a network, you must publish your source under the same licence.
+# Commercial use needs my permission: dmompelriera@nlcsjeju.kr
 # Double-click to switch the reminder off. Your files are left alone.
 LABEL="uk.dmr.birthdayreminder"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"

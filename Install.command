@@ -1,4 +1,9 @@
 #!/bin/bash
+# Copyright (c) 2026 Dr Daniel Mompel Riera
+# Licensed under the GNU Affero General Public License v3.0.
+# Free to use and change; if you pass on a changed version, or let anyone
+# use it over a network, you must publish your source under the same licence.
+# Commercial use needs my permission: dmompelriera@nlcsjeju.kr
 # Double-click this to install or update Birthday Reminder.
 #
 # Unzip it anywhere - Downloads is fine - and double-click. The app copies itself into
