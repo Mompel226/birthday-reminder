@@ -1,0 +1,11 @@
+# Pupil data never belongs in a public repository. These are the paths the app writes
+# a real class into, so git is told to refuse them rather than trusting anyone to remember.
+Profiles/
+active_profile
+config.conf
+Birthday Calendar.html
+*.xls
+*.xlsx
+*.csv
+photos/
+.DS_Store

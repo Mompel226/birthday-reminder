@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Birthday Reminder — read me</title>
+<style>
+ body{font:16px/1.65 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;color:#231a2e;
+  max-width:760px;margin:48px auto;padding:0 26px}
+ h1{font-size:31px;letter-spacing:-.02em;margin-bottom:4px}
+ h2{font-size:19px;margin:34px 0 8px;padding-top:16px;border-top:1px solid #e6e0ee}
+ .lede{color:#6b5b7b;margin-bottom:8px}
+ code{background:#f3eff8;padding:2px 6px;border-radius:5px;font-size:14px}
+ pre{background:#f3eff8;padding:13px 15px;border-radius:9px;overflow:auto;font-size:13px}
+ li{margin:5px 0} table{border-collapse:collapse;width:100%;margin-top:8px}
+ td,th{border-bottom:1px solid #e6e0ee;padding:7px 8px;text-align:left;font-size:15px;vertical-align:top}
+ th{color:#6b5b7b;font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em}
+
+ .gate{background:#f7f2fb;border:1px solid #ded0ea;border-radius:14px;padding:18px 22px;margin:18px 0}
+ .gate > b{display:block;font-size:15.5px;margin-bottom:8px}
+ .gate ol{margin:0 0 4px 20px}
+ .gate li{margin:6px 0}
+ .gatebtn{display:inline-block;background:#a3308c;color:#fff;text-decoration:none;font-weight:700;
+  border-radius:11px;padding:13px 22px;font-size:15.5px;margin:12px 0 4px}
+ .gatebtn:hover{background:#872874}
+ .gatenote{font-size:13px;color:#6b5b7b;line-height:1.55;margin-top:8px}
+ .warn{background:#fff5e8;border-left:4px solid #f7975b;padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0}
+ .credit{margin-top:40px;padding-top:16px;border-top:1px solid #e6e0ee;
+  font-size:13.5px;line-height:1.6;color:#6b5b7b}
+ .credit b{color:#231a2e}
+ .credit a{color:#a3308c}
+</style></head><body>
+
+<h1>Birthday Reminder</h1>
+<p class="lede">162 students, their photos, and a window that finds you instead of the other way round.</p>
+
+<h2>Install (about 20 seconds)</h2>
+<ol>
+  <li>Put this whole folder wherever you keep things — Documents is fine. Keep it together; the app, the photos and the spreadsheet all live here.</li>
+  <li>Double-click <code>Install.command</code>.</li>
+</ol>
+<div class="gate">
+  <b>macOS will block it the first time. That is normal, and this is the quick way through.</b>
+  <ol>
+    <li>Double-click <code>Install.command</code>. macOS says it cannot be opened and offers
+        <b>Move to Trash</b> or <b>Done</b>. Click <b>Done</b> — never Move to Trash.</li>
+    <li>Click the button below. System Settings opens on the right page.</li>
+    <li>Near the bottom it now says <i>"Install.command was blocked…"</i> Click <b>Open Anyway</b>,
+        then <b>Open Anyway</b> again if it asks, and put in your Mac password.</li>
+    <li>It installs. You only ever do this once.</li>
+  </ol>
+  <a class="gatebtn" href="x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension">
+    Open Privacy &amp; Security settings</a>
+  <p class="gatenote">Your browser will ask whether to let this page open System Settings — say yes.
+  If nothing happens, open it by hand:
+  <b>&#63743; menu → System Settings → Privacy &amp; Security</b>, and scroll to the bottom.</p>
+  <p class="gatenote"><b>On macOS 14 and earlier</b> there is a shortcut: right-click
+  <code>Install.command</code> → <b>Open</b> → <b>Open</b>. Apple removed that in macOS 15,
+  which is why the steps above exist.</p>
+</div>
+<p>It opens today's window at the end so you can see it working.</p>
+
+<h2>Putting it on your MacBook Pro</h2>
+<p>Copy the folder across (AirDrop, USB, iCloud Drive — anything), then double-click <code>Install.command</code> on that Mac too. That is the whole job. The two Macs keep separate memories of what they have already shown you, so seeing it on one does not silence the other.</p>
+<div class="warn"><b>If you move the folder</b> after installing, run <code>Install.command</code> again — the background job points at wherever the folder was when you installed it.</div>
+
+<h2>When it appears</h2>
+<table>
+  <tr><th>Moment</th><th>What happens</th></tr>
+  <tr><td>You log in or restart</td><td>Checks straight away.</td></tr>
+  <tr><td>You open the lid</td><td>Checks within 5 minutes. This is the one that matters most.</td></tr>
+  <tr><td>You are up at 00:05 and it shows</td><td>It shows <b>again</b> the first time you open the Mac after 6am. A midnight sighting does not count as having seen it.</td></tr>
+  <tr><td>Later that same day</td><td>Silent. Once you have seen it in the morning it leaves you alone.</td></tr>
+  <tr><td>Friday</td><td>Also warns you about Saturday and Sunday birthdays, so you can say it to their face.</td></tr>
+  <tr><td>Mac was off over a birthday</td><td>Tells you next time you open it — "you missed these".</td></tr>
+  <tr><td>A projector is plugged in</td><td>Shows a plain "1 birthday to see" card. No name, no photo until you click.</td></tr>
+</table>
+
+<h2>Everything lives in the calendar now</h2>
+<p>Open <b>Student Birthdays</b> from the Desktop and the button at the top of the page — it shows the class you are looking at — opens four panels:</p>
+<table>
+  <tr><th>Panel</th><th>What you can do</th></tr>
+  <tr><td><b>Classes</b></td><td>Switch between sets of students, remove one, or add another. Adding is drag-and-drop: drop your exports on the page and it imports them without leaving the calendar.</td></tr>
+  <tr><td><b>Preferred names</b></td><td>Every student, searchable, with a box to type what you actually call them. Saves as you type. This is the panel to open when the school publishes the list.</td></tr>
+  <tr><td><b>Settings</b></td><td>The 6am cutoff, the weekend warning, how far back it looks, the projector guard. No editing files.</td></tr>
+  <tr><td><b>Reminder</b></td><td>Whether the background job is actually installed and running, when it last showed you a window, and a button to show today's window on the spot.</td></tr>
+</table>
+<div class="warn"><b>These only work when you open the calendar from the Student Birthdays icon.</b> If you double-click <code>Birthday Calendar.html</code> directly it still works, but read-only — the page says so and tells you what to open instead.</div>
+
+<h2>Loading a class — and giving this to another teacher</h2>
+<p>Everything comes out of exports your school already produces. Do it from the calendar
+(<b>Classes &rarr; Add a class</b>), or open <b>Import Students</b> in this folder for a plain wizard.
+There are three files it can take. <b>Either of the two list files is enough on its own</b> — you never
+have to fetch both — and the third adds the photographs.</p>
+
+<p><b>In iSAMS, start the same way for all three:</b><br>
+<code>Student Manager</code> &rarr; tick all your classes &rarr; <code>Search</code> &rarr; select all the
+student names &rarr; the <code>Selected Students</code> button &rarr; <code>Exporting and Reports</code>.</p>
+<p><b>Whenever iSAMS offers you a format, pick Excel.</b> All three files have to be Excel — the app reads
+<code>.xlsx</code> and <code>.xls</code> only, not PDF or Word.</p>
+
+<p>From there, each file comes from a different place:</p>
+<table>
+  <tr><th>File</th><th>Where, from that menu</th><th>What it gives you</th></tr>
+  <tr><td><b>Student Report</b><br><i>a list file</i></td>
+      <td><b>Students Simple Report</b> &rarr; tick every field</td>
+      <td>Names and dates of birth &middot; <b>year group, form, house and tutor initials</b></td></tr>
+  <tr><td><b>Export Wizard file</b><br><i>a list file, usually saved as export.xlsx</i></td>
+      <td><b>Export Wizard</b> &rarr; create a new export &rarr; select all the fields</td>
+      <td>Names and dates of birth &middot; <b>preferred names</b> — what students actually go by</td></tr>
+  <tr><td><b>Student ID Badge</b></td>
+      <td><b>Custom Reports</b> &rarr; <b>Student ID Badge</b></td>
+      <td><b>The photographs</b></td></tr>
+</table>
+<p>The two list files are not the same thing and neither contains the other. Both carry all 162 names and
+dates of birth, so either will make a class on its own. Only the Student Report carries year group, form,
+house and tutor initials; only the Export Wizard file carries preferred names. As you drop files in, the
+panel ticks off what you are getting and marks what you are leaving behind, so nothing is a surprise.</p>
+<div class="warn"><b>Give it both list files if you can.</b> With the Export Wizard alone you lose year
+group, form, house and which students are your own tutees. With the Student Report alone you lose preferred
+names. Given both, the app takes the best of each — and if two students share a name, only the Student
+Report can tell them apart, so their photographs are a guess without it. The import says so when it happens.</div>
+<p>It then asks which tutor initials are yours — it reads the real list out of your report and shows it, so
+you just pick yours off the list — and what to call this set of students. Then it does the rest itself:
+every name, date of birth, year group, form, house and photograph, resized and saved as a profile under
+<code>Profiles</code>.</p>
+<p>Nothing is hard-coded. Columns are matched by their headings, not their position, and the files are
+matched to each other on surname, forename and date of birth — so the order you drop them in does not
+matter, and a differently-ordered export still works.</p>
+<div class="warn"><b>Re-importing never loses your typing.</b> Any preferred names you entered by hand are matched back on and kept. Import over the top as often as you like.</div>
+<p><b>Profiles</b> are how this travels. Run <b>Import Students</b> again and choose "Import a new class" for next year's students, or "Switch to" to flip between sets. Hand the whole folder to another teacher and they run Import Students with their own exports and their own initials — their tutees get flagged, not yours. Delete your class from the <b>Classes</b> panel first if you would rather not pass your students on with it — or ask for the blank copy, which has no class in it at all.</p>
+
+<h2>The one icon on your Desktop</h2>
+<p><b>Student Birthdays</b> opens today's birthdays first — the same window the reminder shows you,
+with <b>Got it</b> to dismiss it and <b>See the whole year</b> to carry on into the calendar. On a day
+with nobody's birthday it skips straight to the calendar rather than making you click through nothing.
+Turn that off in Settings if you would rather always land on the calendar.</p>
+<p>Everything else is inside it — the calendar, your classes, preferred names, settings, and a button to show today's birthday window on demand. The background reminder runs on its own whether or not you ever open it.</p>
+<p>Drag it into the Dock if you would rather keep it there. If the icon looks blank or generic at first, that is macOS's icon cache — log out and back in, or just wait; it sorts itself out.</p>
+<div class="warn"><b>These are shortcuts, not the apps themselves.</b> The real folder has to stay where you installed it. Move the folder and you should run <code>Install.command</code> again.</div>
+
+<h2>The calendar</h2>
+<p>Open it from the <b>Student Birthdays</b> Desktop icon. Three views:</p>
+<ul>
+  <li><b>Month</b> — the default. Faces and first names sit in the day cells; click any highlighted day for the full cards.</li>
+  <li><b>Year</b> — all twelve months at once, shaded darker where more than one birthday falls on a day, plus a bar of how the year is loaded. Click a month to jump to it.</li>
+  <li><b>List</b> — every birthday in date order. This is the one that prints (⌘P) if you want a paper copy for the term.</li>
+</ul>
+<p>Filter to a year group or to your tutor group with the chips, search any name, and move around with <code>←</code> <code>→</code>, <code>T</code> for today, <code>M</code>/<code>Y</code>/<code>L</code> for views, <code>/</code> to search.</p>
+<p>Across the top, <b>Up next</b> shows the next seven birthdays coming — click any of them to jump straight to that day.</p>
+<p>The calendar is rebuilt from <code>students.csv</code> every time you open it from the Desktop icon, so edits to preferred names or students appear immediately.</p>
+
+<h2>Changing things</h2>
+<p>Open <code>config.conf</code> in TextEdit. Edit, save, done — no reinstall. The 6am cutoff, the weekend warning, how far back it looks, and the projector behaviour are all in there with plain-English comments.</p>
+
+<h2>Preferred names</h2>
+<p>Your active profile's <code>students.csv</code> (under <code>Profiles</code>) has an empty <b>preferred_name</b> column. Fill any of them in and that name is what the window shows, with the registered name underneath in small italics so you can still connect the two. Leave it blank and it uses the name from the report. Open it in Excel, or Numbers, and save as CSV.</p>
+<p>Same file is how you add or remove one student without a full re-import: one row each, <code>day</code> and <code>month</code> are plain numbers, <code>photo</code> is the filename (without <code>.jpg</code>) in that profile's <code>photos</code> folder. Leave <code>photo</code> blank and you get a cake instead of a face.</p>
+
+<h2>Checking it works</h2>
+<p>Double-click the <b>Birthday Reminder</b> Desktop icon any time — it always shows you the window for today, even on a quiet day. That is the quickest way to confirm it is alive.</p>
+<p>If it ever goes quiet when it shouldn't, the log is at:</p>
+<pre>~/Library/Application Support/BirthdayReminder/reminder.log</pre>
+<p>Delete that whole <code>BirthdayReminder</code> folder to wipe its memory and start fresh.</p>
+
+<h2>Turning it off</h2>
+<p>Double-click <code>Uninstall.command</code>. Nothing is left running.</p>
+
+<h2>Worth knowing</h2>
+<ul>
+  <li>This folder contains 162 children's names, dates of birth and photographs. It is the same data as the reports you already hold, but two laptops is two copies — worth a glance at whatever your school's data policy says about that, and worth having FileVault on.</li>
+  <li>The calendar's live controls run through a tiny web server on your own Mac — bound to 127.0.0.1 with a random port and a random key, so nothing else can reach it, and it shuts itself down a couple of minutes after you close the page. Nothing is uploaded anywhere.</li>
+  <li>The importer needs Python, which macOS installs as part of its command line tools. If it is not there yet, the app offers to trigger Apple's own one-time installer. Nothing else is downloaded — no Homebrew, no pip.</li>
+  <li>There is no Notification Centre widget. A real macOS widget has to be a WidgetKit extension built and code-signed in Xcode — it cannot be made from scripts, so the Desktop icons are the honest version of that.</li>
+  <li>The birthday window is a browser window, not a true native alert. It cannot force itself in front of a full-screen app, and closing it makes macOS bring that browser forward. To soften this the app opens the window in a browser you do <em>not</em> already have running, so closing it drops you back where you were rather than raising a browser full of your own tabs. You can pin a specific browser in Settings.</li>
+  <li>The calendar is light-mode only. Year groups are colour-coded, but the five colours could not be made safely distinguishable for colourblind readers against a dark background, so rather than ship a dark mode that fails that test there isn't one. Every colour sits beside a written label in any case.</li>
+  <li>The projector guard reads how many displays are attached. On the Mac Studio, a single monitor counts as one display, so it behaves normally; plug in a second and it will go discreet even at your desk.</li>
+</ul>
+
+<div class="credit">
+  <b>Made by Dr. Daniel Mompel.</b><br>
+  If something is broken, or you can think of a way this should work better,
+  write to <a href="mailto:dmompelriera@nlcsjeju.kr?subject=Birthday%20Reminder%20%E2%80%94%20suggestion%20or%20problem">dmompelriera@nlcsjeju.kr</a>.
+  Suggestions from the people actually using it are how it gets fixed.
+</div>
+
+</body></html>

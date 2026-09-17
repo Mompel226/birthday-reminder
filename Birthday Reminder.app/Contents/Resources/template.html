@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Happy Birthday!</title>
+<style>
+  :root{ --ink:#2a1b3d; --muted:#6b5b7b; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif;
+    color:var(--ink); overflow:hidden; position:relative;
+    background:linear-gradient(145deg,#3b1c5a 0%,#7b2d8e 30%,#c73e94 58%,#f7735b 82%,#ffc25c 100%);
+    background-size:200% 200%; animation:drift 22s ease-in-out infinite;
+  }
+  @keyframes drift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+  canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:3}
+  .balloon{position:fixed;bottom:-160px;width:54px;height:68px;border-radius:50% 50% 48% 48%;
+    opacity:.42;z-index:1;animation:rise linear infinite}
+  .balloon:after{content:"";position:absolute;top:100%;left:50%;width:1px;height:70px;background:rgba(255,255,255,.4)}
+  @keyframes rise{to{transform:translateY(-125vh) rotate(12deg)}}
+
+  .wrap{position:relative;z-index:4;height:100%;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;padding:30px 26px;overflow-y:auto}
+  .kicker{font-size:14px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.8);
+    font-weight:600;margin-bottom:5px}
+  h1{font-size:clamp(34px,5.6vw,58px);line-height:1.03;color:#fff;font-weight:800;letter-spacing:-.02em;
+    text-align:center;text-shadow:0 3px 26px rgba(0,0,0,.24)}
+  .date{color:rgba(255,255,255,.78);font-size:14px;margin:6px 0 24px}
+
+  .cards{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;width:100%;max-width:1000px}
+  .card{background:rgba(255,255,255,.94);border-radius:24px;padding:20px 22px 24px;width:266px;
+    box-shadow:0 22px 52px rgba(40,10,60,.36);text-align:center;
+    animation:pop .55s cubic-bezier(.2,1.3,.35,1) backwards}
+  .card:nth-child(2){animation-delay:.09s}.card:nth-child(3){animation-delay:.18s}
+  .card:nth-child(n+4){animation-delay:.27s}
+  @keyframes pop{from{opacity:0;transform:translateY(22px) scale(.94)}to{opacity:1;transform:none}}
+  .photo{width:150px;height:190px;object-fit:cover;border-radius:18px;display:block;margin:0 auto 14px;
+    box-shadow:0 8px 22px rgba(40,10,60,.28);border:3px solid #fff;background:#e8e0ef}
+  .nophoto{display:flex;align-items:center;justify-content:center;font-size:46px}
+  .name{font-size:26px;font-weight:800;letter-spacing:-.015em;line-height:1.14}
+  .legal{font-size:12px;color:var(--muted);margin-top:3px;font-style:italic}
+  .meta{margin-top:8px;font-size:14px;color:var(--muted);line-height:1.5}
+  .pill{display:inline-block;margin-top:12px;padding:6px 15px;border-radius:999px;font-size:13px;
+    font-weight:700;background:linear-gradient(90deg,#f7735b,#ffc25c);color:#4a1d10}
+  .tutee{display:inline-block;margin-top:8px;padding:4px 11px;border-radius:999px;font-size:11px;
+    font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:#3b1c5a;color:#fff}
+
+  section.extra{width:100%;max-width:1000px;margin-top:22px}
+  section.extra h2{font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+    color:rgba(255,255,255,.76);font-weight:700;margin-bottom:9px;text-align:center}
+  .mini{display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+  .mini .m{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.18);
+    border:1px solid rgba(255,255,255,.28);color:#fff;padding:7px 14px 7px 7px;border-radius:14px;font-size:13px}
+  .mini img{width:34px;height:42px;object-fit:cover;border-radius:8px;background:rgba(255,255,255,.3)}
+  .mini b{font-weight:700;font-size:14px}
+  .mini span{opacity:.78;display:block;font-size:12px}
+
+  .close{margin-top:26px;background:rgba(255,255,255,.95);color:#3b1c5a;border:0;cursor:pointer;
+    font-size:15px;font-weight:700;padding:13px 40px;border-radius:999px;font-family:inherit;
+    box-shadow:0 10px 26px rgba(30,5,45,.3);transition:transform .12s}
+  .close:hover{transform:translateY(-2px)}
+  .actions{display:flex;gap:11px;align-items:center;flex-wrap:wrap;justify-content:center}
+  /* Who made this, and where to send a suggestion. Sits under the button, out of the way
+     of the faces this window exists to show. */
+  .credit{margin-top:20px;font-size:11px;line-height:1.4;text-align:center;
+    color:rgba(255,255,255,.62);transition:color .15s}
+  .credit:hover{color:rgba(255,255,255,.9)}
+  .credit b{font-weight:700}
+  .credit a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.24)}
+  .credit a:hover{border-bottom-color:rgba(255,255,255,.75)}
+  .close.alt{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.42);
+    text-decoration:none;box-shadow:none;display:inline-block}
+
+  #veil{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:18px;background:linear-gradient(145deg,#3b1c5a,#7b2d8e 55%,#c73e94)}
+  #veil .cake{font-size:62px}
+  #veil p{color:#fff;font-size:25px;font-weight:700}
+  #veil small{color:rgba(255,255,255,.72);font-size:13px;max-width:340px;text-align:center;line-height:1.55}
+  #veil button{background:#fff;color:#3b1c5a;border:0;cursor:pointer;font-family:inherit;
+    font-size:15px;font-weight:700;padding:13px 34px;border-radius:999px}
+  .hidden{display:none!important}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="wrap">
+  <div class="kicker" id="kicker">Today</div>
+  <h1 id="headline">Happy Birthday!</h1>
+  <div class="date" id="dateline"></div>
+  <div class="cards" id="cards"></div>
+  <section class="extra hidden" id="weekendSec"><h2>Coming up this weekend</h2><div class="mini" id="weekend"></div></section>
+  <section class="extra hidden" id="missedSec"><h2>You missed these</h2><div class="mini" id="missed"></div></section>
+  <div class="actions">
+    <button class="close" onclick="window.close()">Got it</button>
+    <a class="close alt hidden" id="calLink" href="#">See the whole year</a>
+  </div>
+  <div class="credit">
+    Made by <b>Dr.&nbsp;Daniel&nbsp;Mompel</b> ·
+    <a href="mailto:dmompelriera@nlcsjeju.kr?subject=Birthday%20Reminder%20%E2%80%94%20suggestion%20or%20problem"
+       title="Suggestions for improvements, or something not working — email me">dmompelriera@nlcsjeju.kr</a>
+  </div>
+</div>
+
+<div id="veil" class="hidden">
+  <div class="cake">🎂</div>
+  <p id="veilCount"></p>
+  <small>A second display is connected, so names and photos are hidden. Click below once you are not sharing your screen.</small>
+  <button onclick="document.getElementById('veil').classList.add('hidden')">Show me</button>
+</div>
+
+<script>
+/*__DATA__*/
+</script>
+<script>
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const img = (d, cls) => d.photo
+  ? `<img class="${cls}" src="data:image/jpeg;base64,${d.photo}" alt="">`
+  : `<div class="${cls} nophoto">🎂</div>`;
+
+const today   = DATA.filter(d => d.kind === 'today');
+const weekend = DATA.filter(d => d.kind === 'weekend');
+const missed  = DATA.filter(d => d.kind === 'missed');
+document.getElementById('dateline').textContent = TODAY_LABEL;
+
+if (today.length) {
+  document.getElementById('cards').innerHTML = today.map(d => `<div class="card">
+      ${img(d, 'photo')}
+      <div class="name">${esc(d.name)}</div>
+      ${d.legal ? `<div class="legal">${esc(d.legal)}</div>` : ''}
+      <div class="meta">${esc(d.year)}${d.form ? ' &middot; ' + esc(d.form) : ''}${d.house ? '<br>' + esc(d.house) + ' House' : ''}</div>
+      <div class="pill">turns ${d.age} today</div>
+      ${d.tutee ? '<div class="tutee">Your tutee</div>' : ''}
+    </div>`).join('');
+  document.getElementById('headline').textContent =
+    today.length === 1 ? 'Happy Birthday!' : `${today.length} birthdays today!`;
+} else if (weekend.length || missed.length) {
+  document.getElementById('kicker').textContent = 'Heads up';
+  document.getElementById('headline').textContent =
+    weekend.length ? 'Birthdays this weekend' : 'Birthday reminder';
+} else {
+  document.getElementById('kicker').textContent = 'All quiet';
+  document.getElementById('headline').textContent = 'No birthdays today';
+  document.getElementById('cards').innerHTML =
+    '<div class="card"><div class="photo nophoto">\u{1F382}</div>' +
+    '<div class="meta">Nothing to remember today.<br>The next one will find you.</div></div>';
+}
+
+function fill(id, secId, rows, prefix) {
+  if (!rows.length) return;
+  document.getElementById(secId).classList.remove('hidden');
+  document.getElementById(id).innerHTML = rows.map(d => `<div class="m">
+      ${img(d, '')}
+      <div><b>${esc(d.name)}</b><span>${esc(d.year)}${d.form ? ' · ' + esc(d.form) : ''} · turns ${d.age} ${prefix}${esc(d.day)}</span></div>
+    </div>`).join('');
+}
+fill('weekend', 'weekendSec', weekend, '');
+fill('missed',  'missedSec',  missed,  'on ');
+
+if (DISCREET) {
+  const n = DATA.length;
+  document.getElementById('veilCount').textContent = n === 1 ? '1 birthday to see' : n + ' birthdays to see';
+  document.getElementById('veil').classList.remove('hidden');
+}
+
+if (typeof CALENDAR === 'string' && CALENDAR) {
+  const a = document.getElementById('calLink');
+  a.href = CALENDAR; a.classList.remove('hidden');
+}
+
+const hues = ['#ffd166','#ff7b6b','#ff9ecd','#a685ff','#6fd6ff'];
+for (let i = 0; i < 9; i++) {
+  const b = document.createElement('div');
+  b.className = 'balloon';
+  b.style.left = (4 + Math.random() * 90) + '%';
+  b.style.background = hues[i % hues.length];
+  b.style.animationDuration = (13 + Math.random() * 11) + 's';
+  b.style.animationDelay = (-Math.random() * 18) + 's';
+  document.body.appendChild(b);
+}
+const cv = document.getElementById('confetti'), cx = cv.getContext('2d');
+let W, H; const bits = [];
+function size() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
+size(); addEventListener('resize', size);
+for (let i = 0; i < 140; i++) bits.push({
+  x: Math.random() * W, y: Math.random() * -H, w: 6 + Math.random() * 6, h: 9 + Math.random() * 9,
+  c: hues[i % hues.length], vy: 1.1 + Math.random() * 2.4, vx: -.7 + Math.random() * 1.4,
+  a: Math.random() * 6.28, va: -.09 + Math.random() * .18
+});
+(function draw() {
+  cx.clearRect(0, 0, W, H);
+  for (const b of bits) {
+    b.y += b.vy; b.x += b.vx; b.a += b.va;
+    if (b.y > H + 20) { b.y = -20; b.x = Math.random() * W; }
+    cx.save(); cx.translate(b.x, b.y); cx.rotate(b.a);
+    cx.fillStyle = b.c; cx.globalAlpha = .85;
+    cx.fillRect(-b.w / 2, -b.h / 2, b.w, b.h); cx.restore();
+  }
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>

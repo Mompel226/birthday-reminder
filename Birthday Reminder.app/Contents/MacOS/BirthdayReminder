@@ -1,0 +1,296 @@
+#!/bin/bash
+# Birthday Reminder - shows a birthday popup for Daniel's students.
+# Dependency-free: plain bash + the tools macOS already ships.
+#
+#   --check    scheduled run: decides for itself whether to show (used by the LaunchAgent)
+#   --force    always show (used when you double-click the app)
+#   --preview  build the page and print its path, don't open it and don't mark it seen
+#   --peek     like --preview, but ignores "already shown today" and prints nothing
+#              at all when there is no birthday to report. Used when you open the app.
+
+set -uo pipefail
+
+# ---------------------------------------------------------------- where things live
+SELF="${BASH_SOURCE[0]}"
+while [ -L "$SELF" ]; do SELF="$(readlink "$SELF")"; done
+MACOS_DIR="$(cd "$(dirname "$SELF")" && pwd)"
+# .../Birthday Reminder.app/Contents/MacOS -> the folder holding the .app
+BASE="$(cd "$MACOS_DIR/../../.." && pwd)"
+RES="$(cd "$MACOS_DIR/../Resources" && pwd)"
+
+CONF="$BASE/config.conf"
+
+# ---------------------------------------------------------------- active profile
+ACTIVE=""
+[ -f "$BASE/active_profile" ] && ACTIVE="$(head -n1 "$BASE/active_profile" | tr -d '\r\n')"
+PROFILE_DIR=""
+[ -n "$ACTIVE" ] && [ -d "$BASE/Profiles/$ACTIVE" ] && PROFILE_DIR="$BASE/Profiles/$ACTIVE"
+if [ -z "$PROFILE_DIR" ]; then          # no note of which class, or it has been deleted
+  for d in "$BASE/Profiles"/*/; do
+    [ -f "$d/students.csv" ] || continue
+    PROFILE_DIR="${d%/}"; ACTIVE="$(basename "$PROFILE_DIR")"; break
+  done
+fi
+if [ -n "$PROFILE_DIR" ]; then
+  DATA="$PROFILE_DIR/students.csv"; PHOTOS="$PROFILE_DIR/photos"
+  PHOTO_REL="Profiles/$ACTIVE/photos/"
+else
+  DATA="/dev/null"; PHOTOS=""; PHOTO_REL="photos/"      # nothing imported yet
+fi
+
+STATE_DIR="${BR_STATE_DIR:-$HOME/Library/Application Support/BirthdayReminder}"
+mkdir -p "$STATE_DIR"
+LAST_SHOW="$STATE_DIR/last_show"
+ANNOUNCED="$STATE_DIR/announced"
+LAST_CHECK="$STATE_DIR/last_check"
+LOG="$STATE_DIR/reminder.log"
+touch "$ANNOUNCED"
+LASTCHK=""; [ -f "$LAST_CHECK" ] && LASTCHK="$(cat "$LAST_CHECK")"
+
+# ---------------------------------------------------------------- settings
+MORNING_CUTOFF="06:00"
+NOTIFY_AFTER=""             # do not show before this time. Blank = fall back to MORNING_CUTOFF
+PRESENCE_IDLE_MAX="600"     # seconds of no typing/trackpad before we assume you walked away
+WEEKEND_ROLL="yes"          # announce Sat/Sun birthdays on the Friday before
+SHOW_ON_WEEKEND="yes"       # also show on the actual Saturday/Sunday if you're at the Mac
+CATCHUP_DAYS="7"            # look back this far for birthdays missed while the Mac was off
+DISCREET_MODE="auto"        # auto | always | never  - hide names when a 2nd display is attached
+POPUP_BROWSER="auto"        # auto, or force one: Safari / Google Chrome / Microsoft Edge
+[ -f "$CONF" ] && . "$CONF"
+# An older config.conf only knows about MORNING_CUTOFF. People set it meaning "tell me
+# after this time", so honour it as exactly that rather than springing 07:00 on them.
+: "${NOTIFY_AFTER:=${MORNING_CUTOFF:-07:00}}"
+export POPUP_BROWSER
+
+MODE="${1:---force}"   # Finder double-click passes nothing; launchd passes --check
+trap 'printf "%s\n" "${NOW_DATE:-}" > "$LAST_CHECK" 2>/dev/null' EXIT
+
+HOLD=""
+# The old build wrote an identical line every five minutes - 288 a day - which buried
+# the one entry that mattered. Consecutive repeats are dropped. The mtime of
+# last_check still moves on every run, so "is it alive?" is answered by that.
+log() {
+  local msg="$*"
+  # Only the idle chatter is collapsed. Anything that actually happened - a window
+  # shown, a window that would not open - is always written, even back to back, or
+  # the log quietly loses the one line you came looking for.
+  case "$msg" in
+    waiting*|"no birthdays"*|"already shown"*)
+      [ -f "$LOG" ] && [ "$(tail -n1 "$LOG" 2>/dev/null | cut -c22-)" = "$msg" ] && return 0 ;;
+  esac
+  printf '%s  %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$msg" >>"$LOG"
+}
+
+# ---------------------------------------------------------------- date helpers (BSD + GNU)
+if date -v+1d >/dev/null 2>&1; then
+  d_add() { date -v"$1"d "+%Y-%m-%d"; }                                   # macOS / BSD
+  d_parts() { date -j -f "%Y-%m-%d" "$1" "+$2" 2>/dev/null; }
+else
+  d_add() { date -d "$1 days" "+%Y-%m-%d"; }                              # Linux / GNU (testing)
+  d_parts() { date -d "$1" "+$2" 2>/dev/null; }
+fi
+
+NOW_DATE="${BR_TODAY:-$(date '+%Y-%m-%d')}"
+NOW_TIME="${BR_NOW_TIME:-$(date '+%H:%M')}"
+DOW="$(d_parts "$NOW_DATE" '%u')"        # 1=Mon .. 7=Sun
+
+# offset in days from a (possibly simulated) today
+d_add_from() {
+  if date -v+1d >/dev/null 2>&1; then date -j -v"$1"d -f "%Y-%m-%d" "$NOW_DATE" "+%Y-%m-%d"
+  else date -d "$NOW_DATE $1 days" "+%Y-%m-%d"; fi
+}
+
+# ---------------------------------------------------------------- which dates to announce
+# each entry: YYYY-MM-DD|kind    (kind = today | weekend | missed)
+targets=()
+add_target() { targets+=("$1|$2"); }
+
+add_target "$NOW_DATE" today
+
+if [ "$WEEKEND_ROLL" = "yes" ] && [ "$DOW" = "5" ]; then          # it's Friday
+  add_target "$(d_add_from +1)" weekend
+  add_target "$(d_add_from +2)" weekend
+fi
+if [ "$SHOW_ON_WEEKEND" != "yes" ] && { [ "$DOW" = "6" ] || [ "$DOW" = "7" ]; }; then
+  targets=()                                                       # stay quiet at the weekend
+fi
+
+# Only look back over days we genuinely missed - i.e. later than the last run.
+# On a fresh install LASTCHK is empty and nothing is backfilled.
+if [ -n "$LASTCHK" ]; then
+  i=1
+  while [ "$i" -le "$CATCHUP_DAYS" ]; do
+    gap="$(d_add_from -"$i")"
+    [[ "$gap" > "$LASTCHK" ]] && add_target "$gap" missed
+    i=$((i + 1))
+  done
+fi
+
+# ---------------------------------------------------------------- match students
+# CSV: forename,surname,preferred_name,day,month,birth_year,year_group,form,house,is_tutee,photo
+# out: kind|display|legal|year|form|house|tutee|age|photo|date
+matches=""
+for t in "${targets[@]}"; do
+  tdate="${t%%|*}"; kind="${t##*|}"
+  tday="$(d_parts "$tdate" '%d')"; tmon="$(d_parts "$tdate" '%m')"; tyear="$(d_parts "$tdate" '%Y')"
+  [ -n "$tday" ] || continue
+  if [ "$kind" = "missed" ] && grep -qx "$tdate" "$ANNOUNCED"; then continue; fi
+  hit="$(awk -F, -v D="$((10#$tday))" -v M="$((10#$tmon))" -v Y="$((10#$tyear))" \
+             -v K="$kind" -v DT="$tdate" '
+         { gsub(/\r/,""); sub(/^\xef\xbb\xbf/,"") }
+         NR>1 && $4+0==D && $5+0==M {
+           first = ($3 != "" ? $3 : $1)                  # preferred name wins when present
+           legal = ($3 != "" ? $1 " " $2 : "")           # show the legal name only if it differs
+           printf "%s|%s %s|%s|%s|%s|%s|%s|%d|%s|%s\n",
+                  K, first, $2, legal, $7, $8, $9, $10, Y-($6+0), $11, DT }' "$DATA")"
+  [ -n "$hit" ] && matches="${matches}${hit}
+"
+done
+matches="$(printf '%s' "$matches" | sed '/^$/d')"
+
+if [ -z "$matches" ]; then
+  [ "$MODE" = "--force" ] || { log "no birthdays for $NOW_DATE"; exit 0; }
+fi
+
+# ---------------------------------------------------------------- is anyone there?
+# Is the screen actually showing this desktop to a person right now?
+screen_ready() {
+  local io
+  io="$(ioreg -n Root -d1 -r -k IOConsoleUsers 2>/dev/null | tr ',' '\n')"
+  [ -n "$io" ] || return 0                                          # cannot tell: do not block
+  # Here-strings, not pipes. "printf | grep -q" looks equivalent and is not: grep -q
+  # quits on the first match, printf dies of SIGPIPE, and `set -o pipefail` hands the
+  # pipeline that failure - so a matching check reports as a failing one. This gate
+  # would then hold the popup back for ever, on the strength of finding what it wanted.
+  grep -qE 'kCGSSessionOnConsoleKey"?[[:space:]]*=[[:space:]]*Yes' <<< "$io" || return 1
+  grep -qE 'CGSSessionScreenIsLocked"?[[:space:]]*=[[:space:]]*Yes' <<< "$io" && return 1
+  pgrep -x ScreenSaverEngine >/dev/null 2>&1 && return 1                   # screensaver is up
+  return 0
+}
+# Seconds since the last key press or trackpad movement.
+user_idle_secs() {
+  ioreg -c IOHIDSystem 2>/dev/null |
+    awk '/HIDIdleTime/ { gsub(/[^0-9]/,"",$NF); printf "%d", $NF/1000000000; exit }'
+}
+# Unlocked is not the same as present - a Mac left open overnight is unlocked all night.
+present() {
+  [ "${PRESENCE_IDLE_MAX:-600}" = "0" ] && return 0        # check switched off in config.conf
+  local idle; idle="$(user_idle_secs)"
+  [ -n "$idle" ] || return 0                               # cannot tell: do not block
+  [ "$idle" -le "${PRESENCE_IDLE_MAX:-600}" ]
+}
+
+# ---------------------------------------------------------------- should we show?
+should_show() {
+  [ "$MODE" = "--force" ] && return 0
+  [ "$MODE" = "--peek" ] && return 0        # opening the app on purpose always shows today
+
+  # Scheduled runs wait for you. The old build fired the moment the clock passed
+  # midnight, wrote the day into "announced" and then went quiet for the rest of it -
+  # so the only popup you ever got was at 00:00, to an empty room. Nothing is shown
+  # now until the time you asked for, and until you are really at an unlocked Mac.
+  if [ "$MODE" = "--check" ]; then
+    if [[ "$NOW_TIME" < "$NOTIFY_AFTER" ]]; then
+      HOLD="waiting until $NOTIFY_AFTER to tell you"; return 1
+    fi
+    screen_ready || { HOLD="waiting - screen locked, asleep, or another user"; return 1; }
+    present      || { HOLD="waiting - no one at the Mac"; return 1; }
+  fi
+
+  # a birthday we have never announced always gets through
+  while IFS='|' read -r kind _d _l _y _fm _h _t _a _p dt; do
+    [ -n "${dt:-}" ] || continue
+    grep -qx "$dt" "$ANNOUNCED" || return 0
+  done <<< "$matches"
+
+  [ -f "$LAST_SHOW" ] || return 0
+  local last; last="$(cat "$LAST_SHOW")"
+  local lday="${last%% *}" ltime="${last##* }"
+  [ "$lday" = "$NOW_DATE" ] || return 0                    # nothing shown yet today
+
+  # shown today already - but if that was before the morning cutoff (e.g. you were up
+  # at 00:05) it does not count for the school day, so show it once more after 06:00.
+  if [[ "$ltime" < "$MORNING_CUTOFF" ]] && [[ ! "$NOW_TIME" < "$MORNING_CUTOFF" ]]; then return 0; fi
+  return 1
+}
+
+if ! should_show; then log "${HOLD:-already shown for $NOW_DATE (suppressed)}"; exit 0; fi
+
+# ---------------------------------------------------------------- projector guard
+external_displays() {
+  local n mirror
+  n="$(system_profiler SPDisplaysDataType 2>/dev/null | grep -c 'Resolution:')"
+  mirror="$(system_profiler SPDisplaysDataType 2>/dev/null | grep -c 'Mirror: On')"
+  [ "${mirror:-0}" -gt 0 ] && { echo 1; return; }
+  [ "${n:-1}" -gt 1 ] && echo 1 || echo 0
+}
+DISCREET=0
+case "$DISCREET_MODE" in
+  always) DISCREET=1 ;;
+  never)  DISCREET=0 ;;
+  auto)   [ "$(external_displays)" = "1" ] && DISCREET=1 ;;
+esac
+
+# ---------------------------------------------------------------- build the page
+OUT_DIR="$STATE_DIR/pages"; mkdir -p "$OUT_DIR"
+PAGE="$OUT_DIR/birthday-$NOW_DATE.html"
+
+b64() { [ -f "$1" ] && base64 < "$1" | tr -d '\n'; }
+
+json_rows() {
+  local first=1
+  while IFS='|' read -r kind disp legal yr form house tutee age photo dt; do
+    [ -n "${kind:-}" ] || continue
+    [ $first -eq 1 ] || printf ','
+    first=0
+    local wd img
+    wd="$(d_parts "$dt" '%A')"
+    img="$(b64 "$PHOTOS/$photo.jpg")"
+    printf '{"kind":"%s","name":"%s","legal":"%s","year":"%s","form":"%s","house":"%s","tutee":%s,"age":%s,"day":"%s","date":"%s","photo":"%s"}' \
+      "$kind" "$disp" "$legal" "$yr" "$form" "$house" \
+      "$([ -n "$tutee" ] && echo true || echo false)" "$age" "$wd" "$dt" "$img"
+  done <<< "$matches"
+}
+
+# assembled in three pieces so the base64 photos never go through sed
+awk '/\/\*__DATA__\*\//{exit} {print}' "$RES/template.html" > "$PAGE"
+{
+  printf 'const DATA = ['
+  json_rows
+  printf '];\n'
+  printf 'const DISCREET = %s;\n' "$DISCREET"
+  printf 'const TODAY_LABEL = "%s";\n' "$(d_parts "$NOW_DATE" '%A %e %B %Y' | tr -s ' ')"
+  # Start the helper if it is not already up, so "See the whole year" always lands on
+  # the real, fully working calendar - never the read-only copy.
+  CAL_URL="$("$MACOS_DIR/start-helper" "$BASE" 2>/dev/null)"
+  if [ -z "$CAL_URL" ] && [ -f "$BASE/Birthday Calendar.html" ]; then
+    CAL_URL="file://$(printf '%s' "$BASE/Birthday Calendar.html" | sed 's/ /%20/g')"
+  fi
+  [ -n "$CAL_URL" ] && printf 'const CALENDAR = "%s";\n' "$CAL_URL"
+} >> "$PAGE"
+awk 'f{print} /\/\*__DATA__\*\//{f=1}' "$RES/template.html" >> "$PAGE"
+
+case "$MODE" in --preview|--peek) echo "$PAGE"; exit 0 ;; esac   # non-destructive: no state written
+
+# ---------------------------------------------------------------- open it
+open_page() { "$MACOS_DIR/app-window" "file://$PAGE" 1180 820; }
+if [ -n "${BR_NO_OPEN:-}" ]; then          # test hook: run the full flow without a browser
+  echo "$PAGE"
+else
+  # app-window now reports failure unless a window is genuinely up and has stayed up.
+  # Anything less must not tick the day off: a birthday nobody saw would otherwise be
+  # remembered as delivered and never shown again.
+  if ! open_page; then
+    log "window did not open for $NOW_DATE - left unannounced so the next run retries"
+    exit 1
+  fi
+  osascript -e 'display notification "Open the Birthday Reminder window" with title "🎂 Birthday today"' >/dev/null 2>&1
+fi
+
+# ---------------------------------------------------------------- remember
+printf '%s %s\n' "$NOW_DATE" "$NOW_TIME" > "$LAST_SHOW"
+while IFS='|' read -r _k _d _l _y _fm _h _t _a _p dt; do
+  [ -n "${dt:-}" ] && ! grep -qx "$dt" "$ANNOUNCED" && echo "$dt" >> "$ANNOUNCED"
+done <<< "$matches"
+log "shown for $NOW_DATE (discreet=$DISCREET)"
+exit 0

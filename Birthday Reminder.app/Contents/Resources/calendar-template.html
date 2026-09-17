@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Student Birthdays</title>
+<script>
+/*__LIVE__*/
+window.LIVE = window.LIVE === true; window.TOKEN = window.TOKEN || '';
+</script>
+<style>
+:root{
+  --surface:#fcfcfb; --card:#fff; --line:#e7e4e0; --line-soft:#f1efec;
+  --ink:#0b0b0b; --ink-2:#52514e; --ink-3:#8b8880;
+  --accent:#a3308c; --accent-soft:#fbeef7; --accent-line:#f0cfe6;
+  /* year-group hues - validated all-pairs on this surface (see note in the About panel) */
+  --yg-7:#2a78d6; --yg-9:#1baf7a; --yg-10:#eda100; --yg-11:#e87ba4; --yg-12:#4a3aa7;
+  --seq:#a3308c; --den-1:#b8479f; --den-2:#7b2d8e;
+  --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--surface);color:var(--ink);
+  font:15px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+.shell{max-width:1240px;margin:0 auto;padding:0 22px 60px}
+
+/* ---------- header ---------- */
+header{background:linear-gradient(115deg,#3b1c5a,#7b2d8e 42%,#c73e94 78%,#f7735b);
+  color:#fff;padding:22px 0 24px;margin-bottom:20px}
+header .shell{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-bottom:0}
+h1{font-size:25px;font-weight:800;letter-spacing:-.02em}
+.sub{opacity:.8;font-size:13.5px;margin-top:2px}
+/* Who made this, and where to send a suggestion. Quiet enough to ignore while you work,
+   legible enough to act on when you want to. Hidden on paper with the rest of the header. */
+.credit{margin-top:7px;font-size:11px;line-height:1.3;color:rgba(255,255,255,.74);transition:color .15s}
+.credit:hover{color:rgba(255,255,255,.94)}
+.credit b{font-weight:700}
+.credit a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.26)}
+.credit a:hover{border-bottom-color:rgba(255,255,255,.8)}
+.search{position:relative}
+.search input{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);color:#fff;
+  border-radius:999px;padding:9px 16px 9px 36px;width:250px;font:inherit;outline:none}
+.search input::placeholder{color:rgba(255,255,255,.7)}
+.search input:focus{background:rgba(255,255,255,.26);border-color:rgba(255,255,255,.6)}
+.search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:.8}
+
+/* ---------- toolbar ---------- */
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.nav{display:flex;align-items:center;gap:2px}
+.nav button{width:34px;height:34px;border-radius:9px;font-size:17px;color:var(--ink-2)}
+.nav button:hover{background:var(--line-soft)}
+.period{font-size:19px;font-weight:700;letter-spacing:-.01em;min-width:196px;text-align:center}
+.btn{border:1px solid var(--line);border-radius:9px;padding:7px 13px;font-size:13.5px;font-weight:600;color:var(--ink-2);background:var(--card)}
+.btn:hover{border-color:var(--ink-3)}
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--card)}
+.seg button{padding:7px 15px;font-size:13.5px;font-weight:600;color:var(--ink-2);border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed=true]{background:var(--accent);color:#fff}
+.spacer{flex:1}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:5px 13px 5px 9px;font-size:13px;font-weight:600;
+  color:var(--ink-2);background:var(--card);display:inline-flex;align-items:center;gap:7px}
+.chip i{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+.chip[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chip.plain{padding-left:13px}
+
+/* ---------- profile button + manager ---------- */
+.profbtn{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.16);
+  border:1px solid rgba(255,255,255,.32);color:#fff;border-radius:999px;padding:8px 15px;
+  font-size:13.5px;font-weight:700}
+.profbtn:hover{background:rgba(255,255,255,.28)}
+.modal{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:24px}
+.modal.on{display:flex}
+.modal .sheet{background:var(--card);border-radius:20px;width:560px;max-width:100%;max-height:88vh;
+  overflow-y:auto;box-shadow:0 30px 80px rgba(30,10,40,.34)}
+.mhead2{padding:20px 24px 4px;border-bottom:1px solid var(--line-soft);position:sticky;top:0;background:var(--card);z-index:2}
+.mhead2 h2{font-size:19px;font-weight:800;letter-spacing:-.015em}
+.mhead2 p{font-size:13px;color:var(--ink-3);margin-top:3px}
+.mbody{padding:4px 24px 22px}
+.prow{display:flex;align-items:center;gap:12px;border:1px solid var(--line-soft);border-radius:12px;
+  padding:11px 13px;margin-bottom:8px;cursor:pointer}
+.prow:hover{border-color:var(--accent-line);background:var(--accent-soft)}
+.prow.cur{border-color:var(--accent);background:var(--accent-soft)}
+.prow b{font-size:14.5px;font-weight:700;display:block}
+.prow span{font-size:12.5px;color:var(--ink-3)}
+.prow .now{margin-left:auto;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:#fff;background:var(--accent);border-radius:999px;padding:3px 9px}
+.prow .del{margin-left:auto;color:var(--ink-3);font-size:12px;font-weight:700;padding:4px 8px;border-radius:7px}
+.prow .del:hover{background:#fdeceb;color:#c0392b}
+.pbtn{display:block;width:100%;text-align:center;background:var(--accent);color:#fff;border-radius:11px;
+  padding:12px;font-size:14.5px;font-weight:700;margin-top:6px}
+.pbtn.ghost{background:transparent;color:var(--ink-2);border:1px solid var(--line)}
+.pbtn[disabled]{opacity:.45;cursor:not-allowed}
+.drop{border:2px dashed var(--line);border-radius:14px;padding:18px;text-align:center;cursor:pointer;
+  margin-bottom:10px;transition:border-color .12s,background .12s}
+.drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.steps{background:#f6f4f1;border-radius:12px;padding:13px 15px;margin-bottom:14px;font-size:13px;line-height:1.7;color:var(--ink-2)}
+.steps > b{display:block;font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:5px}
+.steps div b{font-weight:800;color:var(--ink)}
+.steps code{background:#fff;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font:inherit;font-size:12.5px}
+.drop b{display:block;font-size:14px;font-weight:700}
+.drop span{font-size:12.5px;color:var(--ink-3)}
+.cover{background:#f3eff8;border-radius:11px;padding:11px 14px;margin:2px 0 4px}
+.cover .ck{display:flex;gap:8px;font-size:12.5px;line-height:1.55;color:var(--ink-3);padding:1px 0}
+.cover .ck span{font-weight:800;width:11px;flex:none;text-align:center}
+.cover .ck.on{color:var(--ink-2)}
+.cover .ck.on span{color:#2e9e6b}
+.cover .ck b{color:var(--ink-2);font-weight:700}
+.cover .hint{font-size:12.5px;line-height:1.55;color:var(--ink-3)}
+.cover .hint b{color:var(--ink-2);font-weight:700}
+.drop.done{border-style:solid;border-color:#1baf7a;background:#f0faf6}
+.fld{margin:14px 0}
+.fld label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:5px}
+.fld input,.fld select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;
+  font:inherit;font-size:14px;background:var(--card);color:var(--ink)}
+.note{font-size:12.5px;color:var(--ink-3);line-height:1.6;margin-top:10px}
+.log{font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;background:#f6f4f1;border-radius:10px;
+  padding:12px 14px;margin-top:12px;white-space:pre-wrap;max-height:190px;overflow:auto}
+.log .w{color:#b4530f}
+.banner{background:#fff6e8;border:1px solid #f3d9b5;border-radius:14px;padding:16px 18px;margin-bottom:16px;
+  font-size:14px;line-height:1.6}
+.banner b{display:block;font-size:15.5px;margin-bottom:3px}
+
+/* ---------- up next ---------- */
+.upnext{display:flex;gap:8px;overflow-x:auto;padding-bottom:14px;margin-bottom:4px}
+.up{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line-soft);
+  border-radius:12px;padding:7px 13px 7px 7px;cursor:pointer;flex:none;transition:border-color .12s}
+.up:hover{border-color:var(--accent)}
+.up.soon{background:var(--accent-soft);border-color:var(--accent-line)}
+.up img{width:32px;height:40px;object-fit:cover;border-radius:7px;background:#eae6e1;flex:none}
+.up b{font-size:13.5px;font-weight:700;display:block;line-height:1.25}
+.up span{font-size:11.5px;color:var(--ink-3);display:block}
+.tabs{display:flex;gap:4px;margin:14px 0 18px;padding-bottom:14px;border-bottom:1px solid var(--line-soft)}
+.tabs button{font-size:12.5px;font-weight:700;color:var(--ink-3);padding:6px 11px;border-radius:8px}
+.tabs button[aria-pressed=true]{background:var(--ink);color:#fff}
+.nameRow{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line-soft)}
+.nameRow img{width:30px;height:38px;object-fit:cover;border-radius:6px;background:#f0ecf4;flex:none}
+.nameRow .who2{flex:1;min-width:0}
+.nameRow b{font-size:13.5px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nameRow span{font-size:11.5px;color:var(--ink-3)}
+.nameRow input{width:150px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:inherit;font-size:13px}
+.nameRow input:focus{border-color:var(--accent);outline:none}
+.saved{font-size:12px;color:#1baf7a;font-weight:700;margin-left:8px}
+.stat{display:flex;align-items:flex-start;gap:10px;font-size:13.5px;line-height:1.6;margin-bottom:10px}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;margin-top:6px}
+.dot.ok{background:#1baf7a}.dot.no{background:#e34948}.dot.hm{background:#eda100}
+.up .when{font-size:11px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
+
+/* ---------- month grid ---------- */
+.dow{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
+.dow div{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);padding-left:4px}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cell{background:var(--card);border:1px solid var(--line-soft);border-radius:var(--radius);min-height:112px;
+  padding:8px;display:flex;flex-direction:column;gap:5px;transition:border-color .12s,box-shadow .12s}
+.cell.we{background:#faf8f6}
+.cell.out{background:transparent;border-color:transparent}
+.cell.out .num{color:#c9c5bf}
+.cell.has{cursor:pointer;border-color:var(--accent-line);background:var(--accent-soft)}
+.cell.has:hover{border-color:var(--accent);box-shadow:0 4px 14px rgba(163,48,140,.14)}
+.cell.today{border-color:var(--accent);border-width:2px;padding:7px}
+.num{font-size:13px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:5px}
+.num b{background:var(--accent);color:#fff;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:700}
+.who{display:flex;align-items:center;gap:6px;font-size:12.5px;line-height:1.25;min-width:0}
+.who img{width:26px;height:32px;object-fit:cover;border-radius:6px;flex:none;background:#eae6e1}
+.who .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{font-size:10px;font-weight:800;letter-spacing:.04em;padding:1px 5px;border-radius:4px;color:#fff;flex:none}
+.more{font-size:11.5px;color:var(--ink-3);font-weight:600;padding-left:2px}
+
+/* ---------- year view ---------- */
+.year{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.mini{background:var(--card);border:1px solid var(--line-soft);border-radius:var(--radius);padding:12px 12px 14px;cursor:pointer}
+.mini:hover{border-color:var(--accent-line);box-shadow:0 4px 14px rgba(0,0,0,.05)}
+.mini h3{font-size:13.5px;font-weight:700;margin-bottom:2px;display:flex;justify-content:space-between;align-items:baseline}
+.mini h3 span{font-size:11.5px;font-weight:600;color:var(--ink-3)}
+.mgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:8px}
+.mgrid div{aspect-ratio:1;border-radius:4px;font-size:9.5px;display:flex;align-items:center;justify-content:center;color:#b8b4ae}
+.mgrid div.b{color:#fff;font-weight:700}
+.chart{background:var(--card);border:1px solid var(--line-soft);border-radius:var(--radius);padding:18px 20px 14px;margin-top:16px}
+.chart h3{font-size:13px;font-weight:700;margin-bottom:2px}
+.chart p{font-size:12.5px;color:var(--ink-3);margin-bottom:14px}
+.bars{display:grid;grid-template-columns:repeat(12,1fr);gap:8px;align-items:end;height:132px}
+.bars .col{display:flex;flex-direction:column;justify-content:flex-end;height:100%;gap:5px;position:relative}
+.bars .bar{background:var(--seq);border-radius:4px 4px 0 0;min-height:2px;transition:opacity .12s}
+.bars .col:hover .bar{opacity:.75}
+.bars .v{font-size:11px;font-weight:700;color:var(--ink-2);text-align:center}
+.bars .lab{font-size:10.5px;color:var(--ink-3);text-align:center;font-weight:600}
+
+/* ---------- list view ---------- */
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line-soft);border-radius:var(--radius);overflow:hidden}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);text-align:left;padding:11px 14px;border-bottom:1px solid var(--line)}
+td{padding:9px 14px;border-bottom:1px solid var(--line-soft);font-size:14px;vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--accent-soft)}
+td img{width:32px;height:40px;object-fit:cover;border-radius:6px;display:block;background:#eae6e1}
+.mhead td{background:#f6f4f1;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+
+/* ---------- drawer ---------- */
+.scrim{position:fixed;inset:0;background:rgba(20,10,26,.34);opacity:0;pointer-events:none;transition:opacity .18s;z-index:40}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:400px;max-width:92vw;background:var(--card);z-index:41;
+  transform:translateX(100%);transition:transform .22s cubic-bezier(.3,.9,.4,1);overflow-y:auto;
+  box-shadow:-14px 0 40px rgba(30,10,40,.16)}
+.drawer.on{transform:none}
+.dhead{padding:20px 22px 16px;border-bottom:1px solid var(--line-soft);position:sticky;top:0;background:var(--card);z-index:2}
+.dhead h2{font-size:19px;font-weight:800;letter-spacing:-.015em}
+.dhead p{font-size:13px;color:var(--ink-3);margin-top:2px}
+.dclose{position:absolute;top:18px;right:18px;width:30px;height:30px;border-radius:8px;color:var(--ink-3);font-size:17px}
+.dclose:hover{background:var(--line-soft)}
+.dbody{padding:16px 22px 40px;display:flex;flex-direction:column;gap:12px}
+.person{display:flex;gap:14px;align-items:flex-start;border:1px solid var(--line-soft);border-radius:var(--radius);padding:13px}
+.person img{width:74px;height:94px;object-fit:cover;border-radius:10px;flex:none;background:#eae6e1}
+.person h4{font-size:17px;font-weight:800;letter-spacing:-.01em}
+.person .legal{font-size:12px;font-style:italic;color:var(--ink-3);margin-top:1px}
+.person .row{font-size:13px;color:var(--ink-2);margin-top:6px;line-height:1.55}
+.turns{display:inline-block;margin-top:8px;background:linear-gradient(90deg,#f7735b,#ffc25c);color:#4a1d10;
+  font-size:12px;font-weight:800;padding:4px 11px;border-radius:999px}
+.tut{display:inline-block;margin-top:8px;margin-left:6px;background:#3b1c5a;color:#fff;font-size:10px;font-weight:800;
+  letter-spacing:.07em;text-transform:uppercase;padding:4px 9px;border-radius:999px}
+.empty{text-align:center;color:var(--ink-3);padding:44px 20px;font-size:14px}
+
+.foot{margin-top:26px;font-size:12px;color:var(--ink-3);line-height:1.7}
+.foot b{color:var(--ink-2)}
+kbd{background:var(--line-soft);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;
+  padding:1px 5px;font:600 11px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace}
+
+@media print{
+  header,.bar,.chips,.foot,.scrim,.drawer,.upnext,.modal{display:none!important}
+  body{background:#fff} .shell{max-width:none;padding:0}
+  table{border:0} tbody tr{break-inside:avoid}
+}
+@media (max-width:900px){ .year{grid-template-columns:repeat(2,1fr)} .cell{min-height:92px} }
+</style></head>
+<body>
+<header><div class="shell">
+  <div>
+    <h1>Student Birthdays</h1>
+    <div class="sub" id="sub"></div>
+    <div class="credit">
+      Made by <b>Dr.&nbsp;Daniel&nbsp;Mompel</b> ·
+      <a href="mailto:dmompelriera@nlcsjeju.kr?subject=Birthday%20Reminder%20%E2%80%94%20suggestion%20or%20problem"
+         title="Suggestions for improvements, or something not working — email me">dmompelriera@nlcsjeju.kr</a>
+    </div>
+  </div>
+  <button class="profbtn" id="profbtn" title="Switch or add a class">
+    <span id="profname">—</span>
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+  </button>
+  <div class="search">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="Search a name…" autocomplete="off">
+  </div>
+</div></header>
+
+<div class="shell">
+  <div class="bar">
+    <div class="nav">
+      <button id="prev" title="Previous (←)">‹</button>
+      <button id="next" title="Next (→)">›</button>
+    </div>
+    <div class="period" id="period"></div>
+    <button class="btn" id="today">Today</button>
+    <div class="spacer"></div>
+    <div class="seg" role="group" aria-label="View">
+      <button data-view="month" aria-pressed="true">Month</button>
+      <button data-view="year" aria-pressed="false">Year</button>
+      <button data-view="list" aria-pressed="false">List</button>
+    </div>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="upnext" id="upnext"></div>
+  <div id="view"></div>
+  <div class="foot">
+    <b>Getting around:</b> <kbd>←</kbd> <kbd>→</kbd> move · <kbd>T</kbd> today · <kbd>M</kbd> <kbd>Y</kbd> <kbd>L</kbd> views · <kbd>/</kbd> search · <kbd>Esc</kbd> close.
+    Click any highlighted day for the full cards. <b>List</b> prints cleanly (⌘P) if you want a paper copy for the term.<br>
+    Year-group colours always sit next to a written label, so nothing depends on colour alone. The
+    <b>Year</b> grid shades by how many birthdays fall on a day (darker = more than one); filter to a
+    year group and it shows only that group.
+  </div>
+</div>
+
+<div class="modal" id="modal"><div class="sheet">
+  <div class="mhead2"><h2 id="mtitle">Classes</h2><p id="msub"></p>
+    <button class="dclose" id="mclose">✕</button></div>
+  <div class="mbody" id="mbody"></div>
+</div></div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-live="polite">
+  <div class="dhead"><h2 id="dtitle"></h2><p id="dsub"></p><button class="dclose" id="dclose">✕</button></div>
+  <div class="dbody" id="dbody"></div>
+</aside>
+
+<script>
+/*__DATA__*/
+</script>
+<script>
+const YG = {'Year 7':'var(--yg-7)','Year 9':'var(--yg-9)','Year 10':'var(--yg-10)','Year 11':'var(--yg-11)','Year 12':'var(--yg-12)'};
+const SHORT = y => 'Y' + (y.match(/\d+/) || [''])[0];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MON3 = MONTHS.map(m => m.slice(0,3));
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const BASE_P = (typeof PHOTO_BASE === 'string') ? PHOTO_BASE : 'photos/';
+const NOPIC = "data:image/svg+xml;utf8," + encodeURIComponent(
+  `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 46'><rect width='36' height='46' fill='%23f0ecf4'/>`
+  + `<circle cx='18' cy='17' r='7' fill='%23cfc7d8'/><ellipse cx='18' cy='40' rx='12' ry='13' fill='%23cfc7d8'/></svg>`);
+const photo = p => p ? `<img src="${BASE_P}${encodeURIComponent(p)}.jpg" alt="" loading="lazy">`
+                     : `<img src="${NOPIC}" alt="no photo">`;
+
+const TODAY = new Date();
+let cur = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
+let view = 'month', filter = 'all', query = '';
+
+const groups = [...new Set(STUDENTS.map(s => s.yg).filter(Boolean))]
+  .sort((a,b) => ((a.match(/\d+/)||[0])[0]) - ((b.match(/\d+/)||[0])[0]));
+const nTutees = STUDENTS.filter(s => s.tutee).length;
+document.getElementById('sub').textContent =
+  (typeof PROFILE === 'string' && PROFILE ? PROFILE + ' · ' : '')
+  + STUDENTS.length + ' students'
+  + (groups.length ? ' · ' + groups.length + ' year group' + (groups.length === 1 ? '' : 's') : '')
+  + (nTutees ? ' · ' + nTutees + ' in your tutor group' : '');
+
+function match(s){
+  if (filter === 'tutees' && !s.tutee) return false;
+  if (filter !== 'all' && filter !== 'tutees' && s.yg !== filter) return false;
+  if (query) {
+    const hay = (s.name + ' ' + (s.legal||'') + ' ' + s.form + ' ' + s.yg + ' ' + s.house).toLowerCase();
+    if (!hay.includes(query)) return false;
+  }
+  return true;
+}
+const visible = () => STUDENTS.filter(match);
+const onDay = (m, d) => visible().filter(s => s.m === m && s.d === d);
+const age = (s, y) => y - s.by;
+
+/* ---------- filter chips ---------- */
+function chips(){
+  const el = document.getElementById('chips');
+  const hasTutees = STUDENTS.some(s => s.tutee);
+  const items = [['all','Everyone',null], ...groups.map(g => [g, g, YG[g]])];
+  if (hasTutees) items.push(['tutees','My tutor group',null]);   // no point offering an empty filter
+  el.innerHTML = items.map(([k,label,col]) =>
+    `<button class="chip${col?'':' plain'}" data-f="${esc(k)}" aria-pressed="${filter===k}">
+       ${col?`<i style="background:${col}"></i>`:''}${esc(label)}</button>`).join('');
+  el.querySelectorAll('button').forEach(b => b.onclick = () => { filter = b.dataset.f; render(); });
+}
+
+/* ---------- month ---------- */
+function monthView(){
+  const y = cur.getFullYear(), m = cur.getMonth() + 1;
+  const first = new Date(y, m-1, 1), start = (first.getDay() + 6) % 7;   // Monday-first
+  const days = new Date(y, m, 0).getDate(), prevDays = new Date(y, m-1, 0).getDate();
+  let html = '<div class="dow">' + ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div>${d}</div>`).join('') + '</div><div class="grid">';
+  for (let i = 0; i < start; i++)
+    html += `<div class="cell out"><div class="num">${prevDays - start + i + 1}</div></div>`;
+  for (let d = 1; d <= days; d++) {
+    const list = onDay(m, d);
+    const dow = new Date(y, m-1, d).getDay(), we = dow === 0 || dow === 6;
+    const isToday = y===TODAY.getFullYear() && m===TODAY.getMonth()+1 && d===TODAY.getDate();
+    let inner = `<div class="num">${d}${list.length>1?` <b>${list.length}</b>`:''}</div>`;
+    list.slice(0,3).forEach(s => {
+      inner += `<div class="who" title="${esc(s.name)} — ${esc(s.yg)} ${esc(s.form)}, turns ${age(s,y)}">
+        ${photo(s.photo)}<span class="nm">${esc(s.name.split(' ')[0])}</span>
+        <span class="tag" style="background:${YG[s.yg]||'#777'}">${esc(SHORT(s.yg))}</span></div>`;
+    });
+    if (list.length > 3) inner += `<div class="more">+${list.length-3} more</div>`;
+    html += `<div class="cell${we?' we':''}${list.length?' has':''}${isToday?' today':''}"
+              ${list.length?`data-day="${d}"`:''}>${inner}</div>`;
+  }
+  const tail = (7 - ((start + days) % 7)) % 7;
+  for (let i = 1; i <= tail; i++) html += `<div class="cell out"><div class="num">${i}</div></div>`;
+  document.getElementById('view').innerHTML = html + '</div>';
+  document.querySelectorAll('[data-day]').forEach(c => c.onclick = () => openDay(y, m, +c.dataset.day));
+}
+
+/* ---------- year ---------- */
+function yearView(){
+  const y = cur.getFullYear();
+  const counts = MONTHS.map((_,i) => visible().filter(s => s.m === i+1).length);
+  const peak = Math.max(1, ...counts);
+  let html = '<div class="year">';
+  MONTHS.forEach((name, i) => {
+    const m = i + 1, first = new Date(y, i, 1), start = (first.getDay()+6)%7, days = new Date(y, m, 0).getDate();
+    let cells = '';
+    for (let k = 0; k < start; k++) cells += '<div></div>';
+    for (let d = 1; d <= days; d++) {
+      const list = onDay(m, d);
+      // shaded by COUNT, not year group - a mini cell has no room for a label, and
+      // colour must never be the only carrier of identity
+      const col = list.length > 1 ? 'var(--den-2)' : 'var(--den-1)';
+      cells += `<div class="${list.length?'b':''}" ${list.length?`style="background:${col}" title="${esc(list.map(s=>s.name+' ('+SHORT(s.yg)+')').join(', '))}"`:''}>${d}</div>`;
+    }
+    html += `<div class="mini" data-m="${m}"><h3>${name}<span>${counts[i]||'—'}</span></h3><div class="mgrid">${cells}</div></div>`;
+  });
+  html += '</div>';
+  html += `<div class="chart"><h3>Birthdays per month</h3><p>How the year is loaded — ${visible().length} students in view.</p><div class="bars">` +
+    counts.map((c,i) => `<div class="col" title="${MONTHS[i]}: ${c}">
+        <div class="v">${c||''}</div><div class="bar" style="height:${Math.round(c/peak*88)}%"></div><div class="lab">${MON3[i]}</div>
+      </div>`).join('') + '</div></div>';
+  document.getElementById('view').innerHTML = html;
+  document.querySelectorAll('[data-m]').forEach(el => el.onclick = () => {
+    cur = new Date(y, +el.dataset.m - 1, 1); setView('month');
+  });
+}
+
+/* ---------- list ---------- */
+function listView(){
+  const y = cur.getFullYear();
+  const rows = visible().slice().sort((a,b) => a.m - b.m || a.d - b.d || a.name.localeCompare(b.name));
+  if (!rows.length) { document.getElementById('view').innerHTML = '<div class="empty">Nothing matches that.</div>'; return; }
+  let html = `<table><thead><tr><th></th><th>Date</th><th>Name</th><th>Year</th><th>Form</th><th>House</th><th>Turns</th></tr></thead><tbody>`;
+  let lastM = 0;
+  rows.forEach(s => {
+    if (s.m !== lastM) { lastM = s.m; html += `<tr class="mhead"><td colspan="7">${MONTHS[s.m-1]} ${y}</td></tr>`; }
+    html += `<tr><td>${photo(s.photo)}</td>
+      <td>${s.d} ${MON3[s.m-1]}</td>
+      <td><b>${esc(s.name)}</b>${s.legal?`<div style="font-size:11.5px;font-style:italic;color:var(--ink-3)">${esc(s.legal)}</div>`:''}</td>
+      <td><span class="tag" style="background:${YG[s.yg]||'#777'}">${esc(SHORT(s.yg))}</span> ${esc(s.yg)}</td>
+      <td>${esc(s.form)}</td><td>${esc(s.house)}</td>
+      <td>${age(s,y)}${s.tutee?' <span class="tut">Tutee</span>':''}</td></tr>`;
+  });
+  document.getElementById('view').innerHTML = html + '</tbody></table>';
+}
+
+/* ---------- drawer ---------- */
+function openDay(y, m, d){
+  const list = onDay(m, d);
+  document.getElementById('dtitle').textContent = `${d} ${MONTHS[m-1]} ${y}`;
+  document.getElementById('dsub').textContent =
+    new Date(y, m-1, d).toLocaleDateString('en-GB',{weekday:'long'}) +
+    ` · ${list.length} birthday${list.length===1?'':'s'}`;
+  document.getElementById('dbody').innerHTML = list.map(s => `<div class="person">
+      ${photo(s.photo)}
+      <div><h4>${esc(s.name)}</h4>
+        ${s.legal?`<div class="legal">${esc(s.legal)}</div>`:''}
+        <div class="row"><span class="tag" style="background:${YG[s.yg]||'#777'}">${esc(SHORT(s.yg))}</span>
+          ${esc(s.yg)} · ${esc(s.form)}<br>${esc(s.house)} House</div>
+        <span class="turns">turns ${age(s,y)}</span>${s.tutee?'<span class="tut">Your tutee</span>':''}
+      </div></div>`).join('');
+  document.getElementById('scrim').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+const shut = () => { document.getElementById('scrim').classList.remove('on'); document.getElementById('drawer').classList.remove('on'); };
+document.getElementById('dclose').onclick = shut;
+document.getElementById('scrim').onclick = shut;
+
+/* ---------- shell ---------- */
+function setView(v){
+  view = v;
+  document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === v));
+  render();
+}
+function upnext(){
+  const el = document.getElementById('upnext');
+  const t0 = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
+  const rows = visible().map(s => {
+    let y = t0.getFullYear();
+    let next = new Date(y, s.m-1, s.d);
+    if (next < t0) next = new Date(y+1, s.m-1, s.d);
+    return {s, next, days: Math.round((next - t0) / 86400000)};
+  }).sort((a,b) => a.days - b.days).slice(0, 7);
+  if (!rows.length) { el.innerHTML = ''; return; }
+  const label = n => n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : n < 7 ? `In ${n} days` : `In ${n} days`;
+  el.innerHTML = rows.map(({s, next, days}) => `<div class="up${days<=2?' soon':''}"
+      data-y="${next.getFullYear()}" data-m="${s.m}" data-d="${s.d}">
+      ${photo(s.photo)}
+      <div><span class="when">${label(days)}</span><b>${esc(s.name)}</b>
+        <span>${esc(SHORT(s.yg))} · ${esc(s.form)} · turns ${next.getFullYear()-s.by}</span></div>
+    </div>`).join('');
+  el.querySelectorAll('.up').forEach(c => c.onclick = () => openDay(+c.dataset.y, +c.dataset.m, +c.dataset.d));
+}
+
+function render(){
+  chips();
+  upnext();
+  document.getElementById('period').textContent =
+    view === 'month' ? `${MONTHS[cur.getMonth()]} ${cur.getFullYear()}` : `${cur.getFullYear()}`;
+  ({month:monthView, year:yearView, list:listView})[view]();
+}
+document.getElementById('prev').onclick = () => { step(-1); };
+document.getElementById('next').onclick = () => { step(1); };
+function step(n){
+  if (view === 'month') cur = new Date(cur.getFullYear(), cur.getMonth() + n, 1);
+  else cur = new Date(cur.getFullYear() + n, cur.getMonth(), 1);
+  render();
+}
+document.getElementById('today').onclick = () => { cur = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1); setView('month'); };
+document.querySelectorAll('.seg button').forEach(b => b.onclick = () => setView(b.dataset.view));
+const q = document.getElementById('q');
+q.oninput = () => { query = q.value.trim().toLowerCase(); render(); };
+addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') { if (e.key === 'Escape') { q.value=''; query=''; q.blur(); render(); } return; }
+  if (e.key === 'ArrowLeft') step(-1);
+  else if (e.key === 'ArrowRight') step(1);
+  else if (e.key === 'Escape') { shut(); if (typeof shutModal === 'function') shutModal(); }
+  else if (e.key === '/') { e.preventDefault(); q.focus(); }
+  else if ('tT'.includes(e.key)) document.getElementById('today').click();
+  else if ('mM'.includes(e.key)) setView('month');
+  else if ('yY'.includes(e.key)) setView('year');
+  else if ('lL'.includes(e.key)) setView('list');
+});
+
+/* ================= profiles & importing (only when served by the app) ============= */
+const $ = id => document.getElementById(id);
+const api = (p, opt) => fetch(p + (p.includes('?') ? '&' : '?') + 't=' + encodeURIComponent(TOKEN),
+  Object.assign({headers: {'X-Token': TOKEN}}, opt || {})).then(r => r.json());
+
+let STATE = {profiles: [], active: (typeof PROFILE === 'string' ? PROFILE : '')};
+const openModal = () => $('modal').classList.add('on');
+const shutModal = () => $('modal').classList.remove('on');
+$('mclose').onclick = shutModal;
+$('modal').onclick = e => { if (e.target === $('modal')) shutModal(); };
+
+function paintProfileButton(){
+  $('profname').textContent = STATE.active || 'No class loaded';
+  $('profbtn').style.display = LIVE || STATE.active ? '' : 'none';
+}
+
+async function refreshState(){
+  if (!LIVE) return;
+  try { STATE = await api('/api/state'); } catch (e) {}
+  paintProfileButton();
+}
+
+function tabs(cur){
+  if (!LIVE) return '';
+  const t = [['classes','Classes'],['names','Preferred names'],['settings','Settings'],['status','Reminder']];
+  return '<div class="tabs">' + t.map(([k,l]) =>
+    `<button data-tab="${k}" aria-pressed="${k===cur}">${l}</button>`).join('') + '</div>';
+}
+function wireTabs(){
+  document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => ({
+    classes: showProfiles, names: showNames, settings: showSettings, status: showStatus
+  })[b.dataset.tab]());
+}
+
+function showProfiles(){
+  $('mtitle').textContent = 'Classes';
+  $('msub').textContent = LIVE ? 'Switch between sets of students, or add another.'
+                               : 'Open this from the Student Birthdays icon to switch or add classes.';
+  if (!LIVE) {
+    $('mbody').innerHTML = `<div class="banner"><b>Read-only right now</b>
+      You have opened the calendar file directly. Open it from the <b>Student Birthdays</b>
+      icon instead and you can switch classes and import new ones from here.</div>`;
+    return openModal();
+  }
+  const rows = STATE.profiles.map(p => `<div class="prow${p.name === STATE.active ? ' cur' : ''}" data-p="${esc(p.name)}">
+      <div><b>${esc(p.name)}</b><span>${p.students} students</span></div>
+      ${p.name === STATE.active ? '<span class="now">Showing</span>'
+                                : `<button class="del" data-del="${esc(p.name)}">Remove</button>`}
+    </div>`).join('') || '<div class="note">No classes yet.</div>';
+  $('mbody').innerHTML = tabs('classes') + rows + `<button class="pbtn" id="addbtn">Add a class…</button>`;
+  wireTabs();
+  $('mbody').querySelectorAll('[data-p]').forEach(el => el.onclick = async ev => {
+    if (ev.target.dataset.del) return;
+    const name = el.dataset.p;
+    if (name === STATE.active) return shutModal();
+    el.style.opacity = .5;
+    const r = await api('/api/switch', {method: 'POST', body: JSON.stringify({name})});
+    if (r.ok) location.reload(); else alert(r.error || 'Could not switch.');
+  });
+  $('mbody').querySelectorAll('[data-del]').forEach(b => b.onclick = async ev => {
+    ev.stopPropagation();
+    const name = b.dataset.del;
+    if (!confirm('Remove "' + name + '"? The students and photos in it are deleted from this Mac.')) return;
+    const r = await api('/api/delete', {method: 'POST', body: JSON.stringify({name})});
+    if (r.ok) { STATE.profiles = r.profiles; STATE.active = r.active; showProfiles(); paintProfileButton(); }
+  });
+  $('addbtn').onclick = showImport;
+  openModal();
+}
+
+let up = {report: null, badges: null, extra: null, initials: []}, busy = 0;
+function syncGo(){
+  const go = $('go'); if (!go) return;
+  const roster = up.report || up.extra;              // either list file can be the roster
+  go.disabled = busy > 0 || !roster;
+  go.textContent = busy > 0 ? 'Reading files…' : 'Import';
+  const c = $('cover'); if (!c) return;
+  const line = (ok, txt) => `<div class="ck${ok?' on':''}"><span>${ok?'\u2713':'\u2013'}</span>${txt}</div>`;
+  c.innerHTML = !roster
+    ? `<div class="hint">Drop in <b>either</b> the Student Report <b>or</b> the Export Wizard file —
+       one of them on its own is enough. Both is better.</div>`
+    : line(true, 'Names and dates of birth')
+    + line(!!up.badges, up.badges ? 'Photographs'
+        : 'Photographs — the <b>Student ID Badge</b> file has these')
+    + line(!!up.extra, up.extra ? 'Preferred names'
+        : 'Preferred names — only the <b>Export Wizard</b> file has these')
+    + line(!!up.report, up.report ? 'Year group, form, house and tutor group'
+        : 'Year group, form, house and your tutor group — only the <b>Student Report</b> has these');
+}
+function showImport(){
+  up = {report: null, badges: null, extra: null, initials: []};
+  $('mtitle').textContent = 'Add a class';
+  $('msub').textContent = 'Fetch these from iSAMS and drop them in. Nothing leaves this Mac.';
+  $('mbody').innerHTML = `
+    <div class="steps"><b>In iSAMS, first — the same for all three</b>
+      <code>Student Manager</code> &rarr; tick all your classes &rarr; <code>Search</code> &rarr;
+      select all the student names &rarr; <code>Selected Students</code> &rarr;
+      <code>Exporting and Reports</code>
+      <div style="margin-top:8px">Whenever iSAMS offers you a format, pick <b>Excel</b> — all three
+      have to be Excel files. It cannot read PDF or Word.</div></div>
+    <div class="drop" id="d1"><b>Student Report</b>
+      <span>Names, dates of birth, year group, form, house and tutor initials.<br>
+      <i>Students Simple Report &rarr; tick every field</i></span></div>
+    <div class="drop" id="d3"><b>Export Wizard file</b>
+      <span>Names, dates of birth and preferred names.<br>
+      <i>Export Wizard &rarr; create a new export &rarr; select all the fields</i></span></div>
+    <div class="drop" id="d2"><b>Student ID Badge</b>
+      <span>The photographs. Skip it and you get cakes instead of faces.<br>
+      <i>Custom Reports &rarr; Student ID Badge</i></span></div>
+    <div class="cover" id="cover"></div>
+    <div class="fld"><label>Your initials</label><select id="ini"><option value="">— none —</option></select></div>
+    <div class="fld"><label>Name this class</label><input id="pname" placeholder="e.g. 2026-27"></div>
+    <button class="pbtn" id="go" disabled>Import</button>
+    <button class="pbtn ghost" id="back">Back</button>
+    <div class="note">Either list file will do on its own. Give it all three and you get
+      photographs, preferred names and your tutor group as well. Re-importing over a name you
+      already have keeps any preferred names you typed in yourself.</div>
+    <div class="log" id="ilog" style="display:none"></div>`;
+  $('back').onclick = showProfiles;
+  wireDrop('d1', 'report'); wireDrop('d2', 'badges'); wireDrop('d3', 'extra');
+  $('go').onclick = runImport;
+  syncGo();
+  openModal();
+}
+
+function wireDrop(id, kind){
+  const el = $(id);
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.xlsx,.xls'; inp.style.display = 'none';
+  el.appendChild(inp);
+  el.onclick = () => inp.click();
+  inp.onchange = () => inp.files[0] && send(inp.files[0]);
+  el.ondragover = e => { e.preventDefault(); el.classList.add('over'); };
+  el.ondragleave = () => el.classList.remove('over');
+  el.ondrop = e => { e.preventDefault(); el.classList.remove('over');
+                     if (e.dataTransfer.files[0]) send(e.dataTransfer.files[0]); };
+
+  async function send(file){
+    el.classList.remove('done');
+    const note = el.querySelector('span');
+    note.textContent = 'Reading ' + file.name + ' …';
+    busy++; syncGo();                       // a 19MB badge file takes a moment - no importing mid-upload
+    let r;
+    try {
+      r = await fetch('/api/upload?kind=' + kind + '&name=' + encodeURIComponent(file.name) +
+                      '&t=' + encodeURIComponent(TOKEN), {method: 'POST', body: file}).then(x => x.json());
+    } catch (e) { r = {error: String(e)}; }
+    busy--;
+    if (!r || !r.ok) { note.textContent = 'Could not read that file.'; up[kind] = null; syncGo(); return; }
+    if (kind !== 'badges' && (!r.initials || r.warning)) {
+      // it saved, but import.py could not make sense of it - say so now, not after Import
+      note.textContent = 'That spreadsheet has no Surname / Forename / Date of Birth columns, ' +
+        'so nothing can be matched from it.';
+      up[kind] = null; syncGo(); return;
+    }
+    up[kind] = r.path;
+    el.classList.add('done');
+    note.textContent = file.name + ' · ' + (r.bytes > 900000
+      ? (r.bytes / 1048576).toFixed(1) + ' MB' : Math.round(r.bytes / 1024) + ' KB');
+    if (kind === 'report') {
+      up.initials = r.initials || [];
+      const sel = $('ini');
+      sel.innerHTML = '<option value="">— none —</option>' +
+        up.initials.map(i => `<option value="${esc(i.code)}">${esc(i.code)} · ${i.count} students</option>`).join('');
+      if (!$('pname').value) $('pname').value = new Date().getFullYear() + '-' + String(new Date().getFullYear() + 1).slice(2);
+    }
+    syncGo();
+  }
+}
+
+async function runImport(){
+  const name = $('pname').value.trim();
+  if (!name) { $('pname').focus(); return; }
+  const log = $('ilog');
+  $('go').disabled = true; $('go').textContent = 'Importing…';
+  log.style.display = ''; log.textContent = 'Reading the files and cutting out the photographs…';
+  let r;
+  try {
+    r = await api('/api/import', {method: 'POST', body: JSON.stringify({
+      name, initials: $('ini').value, report: up.report || up.extra, badges: up.badges,
+      extras: [up.report && up.extra ? up.extra : null].filter(Boolean)})});
+  } catch (e) { r = {error: String(e)}; }
+  if (r && r.ok) {
+    log.innerHTML = esc(r.log).replace(/^WARN (.*)$/gm, '<span class="w">! $1</span>')
+                              .replace(/^INFO /gm, '• ').replace(/^OK /gm, 'Done: ');
+    $('go').textContent = 'Opening…';
+    setTimeout(() => location.reload(), 1200);
+  } else {
+    log.innerHTML = '<span class="w">' + esc((r && (r.error || '')) || 'Import failed.') + '</span>\n' +
+                    esc((r && r.log) || '');
+    $('go').disabled = false; $('go').textContent = 'Try again';
+  }
+}
+
+function showNames(){
+  $('mtitle').textContent = 'Preferred names';
+  $('msub').textContent = 'What the app should call them. Blank means use the registered name.';
+  $('mbody').innerHTML = tabs('names') +
+    `<div class="fld"><input id="nfilter" placeholder="Filter by name, year or form…"></div>
+     <div id="nlist"></div><div class="note" id="nnote">Saved as you type.</div>`;
+  wireTabs();
+  const paint = () => {
+    const q = ($('nfilter').value || '').toLowerCase();
+    const rows = STUDENTS.filter(s => !q ||
+      (s.name + ' ' + (s.legal || '') + ' ' + s.yg + ' ' + s.form).toLowerCase().includes(q))
+      .slice().sort((a, b) => (a.legal || a.name).localeCompare(b.legal || b.name));
+    $('nlist').innerHTML = rows.map((s, i) => `<div class="nameRow">
+        ${photo(s.photo)}
+        <div class="who2"><b>${esc(s.legal || s.name)}</b><span>${esc(s.yg)} · ${esc(s.form)}</span></div>
+        <input data-i="${STUDENTS.indexOf(s)}" value="${esc(s.legal ? s.name.split(' ')[0] : '')}"
+               placeholder="preferred">
+      </div>`).join('') || '<div class="note">Nobody matches that.</div>';
+    $('nlist').querySelectorAll('input').forEach(inp => {
+      let timer;
+      inp.oninput = () => {
+        clearTimeout(timer);
+        timer = setTimeout(async () => {
+          const s = STUDENTS[+inp.dataset.i];
+          const surname = (s.legal || s.name).split(' ').slice(1).join(' ');
+          const forename = (s.legal || s.name).split(' ')[0];
+          const r = await api('/api/preferred', {method: 'POST', body: JSON.stringify({changes: [
+            {surname, forename, day: s.d, month: s.m, value: inp.value.trim()}]})});
+          $('nnote').textContent = r && r.saved ? 'Saved.' : 'Could not save that one.';
+        }, 600);
+      };
+    });
+  };
+  $('nfilter').oninput = paint; paint();
+  openModal();
+}
+
+function showSettings(){
+  $('mtitle').textContent = 'Settings';
+  $('msub').textContent = 'These change how the birthday window behaves. Saved straight away.';
+  const c = STATE.config || {};
+  const yn = (k, on) => `<option value="yes"${(c[k]||'')==='yes'?' selected':''}>${on}</option>
+                         <option value="no"${(c[k]||'')!=='yes'?' selected':''}>No</option>`;
+  const idle = String(c.PRESENCE_IDLE_MAX == null ? '600' : c.PRESENCE_IDLE_MAX);
+  const idleOpt = (v, l) => `<option value="${v}"${idle === v ? ' selected' : ''}>${l}</option>`;
+  $('mbody').innerHTML = tabs('settings') + `
+    <div class="fld"><label>Do not tell me before this time</label>
+      <input id="c_NOTIFY_AFTER" value="${esc(c.NOTIFY_AFTER || '07:00')}" placeholder="07:00"></div>
+    <div class="fld"><label>If I have not touched the Mac for a while, wait until I am back</label>
+      <select id="c_PRESENCE_IDLE_MAX">
+        ${idleOpt('0', 'Do not wait - show as soon as the screen is unlocked')}
+        ${idleOpt('300', 'Wait if idle more than 5 minutes')}
+        ${idleOpt('600', 'Wait if idle more than 10 minutes')}
+        ${idleOpt('1800', 'Wait if idle more than 30 minutes')}
+      </select></div>
+    <div class="fld"><label>A sighting before this time does not count for the day</label>
+      <input id="c_MORNING_CUTOFF" value="${esc(c.MORNING_CUTOFF || '06:00')}" placeholder="06:00"></div>
+    <div class="fld"><label>Warn about Saturday and Sunday birthdays on the Friday</label>
+      <select id="c_WEEKEND_ROLL">${yn('WEEKEND_ROLL','Yes')}</select></div>
+    <div class="fld"><label>Also show on the actual weekend day</label>
+      <select id="c_SHOW_ON_WEEKEND">${yn('SHOW_ON_WEEKEND','Yes')}</select></div>
+    <div class="fld"><label>Look back this many days for ones you missed</label>
+      <input id="c_CATCHUP_DAYS" value="${esc(c.CATCHUP_DAYS || '7')}"></div>
+    <div class="fld"><label>Opening the app shows today's birthdays first</label>
+      <select id="c_OPEN_WITH_TODAY">${yn('OPEN_WITH_TODAY','Yes')}</select></div>
+    <div class="fld"><label>Which browser shows the birthday window</label>
+      <select id="c_POPUP_BROWSER">
+        <option value="auto"${(c.POPUP_BROWSER||'auto')==='auto'?' selected':''}>One I do not already have open</option>
+        <option value="Safari"${c.POPUP_BROWSER==='Safari'?' selected':''}>Safari</option>
+        <option value="Google Chrome"${c.POPUP_BROWSER==='Google Chrome'?' selected':''}>Google Chrome</option>
+        <option value="Microsoft Edge"${c.POPUP_BROWSER==='Microsoft Edge'?' selected':''}>Microsoft Edge</option>
+      </select></div>
+    <div class="fld"><label>Hide names when a second screen is connected</label>
+      <select id="c_DISCREET_MODE">
+        <option value="auto"${(c.DISCREET_MODE||'auto')==='auto'?' selected':''}>Automatically</option>
+        <option value="always"${c.DISCREET_MODE==='always'?' selected':''}>Always ask first</option>
+        <option value="never"${c.DISCREET_MODE==='never'?' selected':''}>Never hide</option>
+      </select></div>
+    <button class="pbtn" id="csave">Save</button>
+    <div class="note" id="cnote"></div>`;
+  wireTabs();
+  $('csave').onclick = async () => {
+    const values = {};
+    ['NOTIFY_AFTER','PRESENCE_IDLE_MAX','MORNING_CUTOFF','WEEKEND_ROLL','SHOW_ON_WEEKEND',
+     'CATCHUP_DAYS','DISCREET_MODE','POPUP_BROWSER','OPEN_WITH_TODAY']
+      .forEach(k => values[k] = $('c_' + k).value.trim());
+    const r = await api('/api/config', {method: 'POST', body: JSON.stringify({values})});
+    STATE.config = (r && r.values) || STATE.config;
+    $('cnote').textContent = r && r.ok ? 'Saved. The reminder picks this up on its next check.'
+                                       : 'Could not save.';
+  };
+  openModal();
+}
+
+function showStatus(){
+  $('mtitle').textContent = 'The background reminder';
+  $('msub').textContent = 'Whether the thing that pops up on its own is actually running.';
+  const s = STATE.status || {};
+  const line = (cls, t) => `<div class="stat"><span class="dot ${cls}"></span><div>${t}</div></div>`;
+  let html = tabs('status');
+  html += s.installed ? line('ok', 'Installed — the background job is set up on this Mac.')
+                      : line('no', 'Not installed. Run <b>Install.command</b> in the app folder once.');
+  html += s.loaded ? line('ok', 'Running — it checks at login and every 5 minutes after that.')
+                   : line(s.installed ? 'hm' : 'no', 'Not currently loaded. Running <b>Install.command</b> again fixes this.');
+  html += s.last_show ? line('ok', 'Last showed you a birthday window: <b>' + esc(s.last_show) + '</b>')
+                      : line('hm', 'It has not shown a window yet. That is normal if there has been no birthday since you installed it.');
+  html += `<button class="pbtn" id="tnow">Show me today's window now</button>`;
+  if (s.last_log) html += `<div class="log">${esc(s.last_log)}</div>`;
+  $('mbody').innerHTML = html;
+  wireTabs();
+  $('tnow').onclick = async () => {
+    $('tnow').textContent = 'Opening…';
+    await api('/api/test', {method: 'POST'});
+    setTimeout(() => { $('tnow').textContent = "Show me today's window now"; }, 2500);
+  };
+  openModal();
+}
+
+$('profbtn').onclick = showProfiles;
+
+function boot(){                       // runs after render(), which owns #view
+  // Opened as a plain file while the helper happens to be running? Hop across to the
+  // live one rather than stranding the user on a read-only page.
+  if (!LIVE && typeof LAST_URL === 'string' && LAST_URL && location.protocol === 'file:') {
+    fetch(LAST_URL, {mode: 'no-cors'}).then(() => location.replace(LAST_URL)).catch(() => {});
+  }
+  paintProfileButton();
+  if (LIVE) {
+    refreshState();
+    setInterval(() => api('/api/heartbeat', {method: 'POST'}).catch(() => {}), 60000);
+    if (!STUDENTS.length) setTimeout(showImport, 350);
+  } else if (!STUDENTS.length) {
+    $('view').innerHTML = `<div class="banner"><b>No class loaded yet</b>
+      Open <b>Import Students</b> in the app folder, or open this calendar from the
+      <b>Student Birthdays</b> icon and add a class from there.</div>`;
+    $('upnext').innerHTML = '';
+  }
+}
+
+render();
+boot();
+</script>
+</body></html>

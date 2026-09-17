@@ -1,0 +1,39 @@
+#!/bin/bash
+# The one icon. Opens the calendar in its own clean window - not a browser tab -
+# with the background helper running so the page can switch classes, import and edit.
+SELF="${BASH_SOURCE[0]}"; while [ -L "$SELF" ]; do SELF="$(readlink "$SELF")"; done
+HERE="$(cd "$(dirname "$SELF")/../../.." && pwd)"
+MAC="$HERE/Birthday Reminder.app/Contents/MacOS"
+BUILD="$MAC/build-calendar"
+STATE="$HOME/Library/Application Support/BirthdayReminder"
+mkdir -p "$STATE"
+
+# config only for POPUP_BROWSER, which app-window honours
+CONF="$HERE/config.conf"; [ -f "$CONF" ] && . "$CONF" 2>/dev/null
+export POPUP_BROWSER
+
+URL="$("$MAC/start-helper" "$HERE" 2>/dev/null)"
+
+# Today's birthdays first, the way it used to be when there were two icons.
+# "Got it" closes it; "See the whole year" carries on into the calendar.
+# Nothing to report today? Go straight to the calendar instead of a pointless click.
+if [ "${OPEN_WITH_TODAY:-yes}" = "yes" ]; then
+  PAGE="$("$MAC/BirthdayReminder" --peek 2>/dev/null | tail -n1)"
+  if [ -n "$PAGE" ] && [ -f "$PAGE" ]; then
+    exec "$MAC/app-window" "file://$PAGE" 1180 820
+  fi
+fi
+
+if [ -n "$URL" ]; then
+  exec "$MAC/app-window" "$URL" 1280 900
+fi
+
+# helper would not start - fall back to the plain file and say why
+OUT="$("$BUILD" 2>/dev/null)"
+[ -n "$OUT" ] && [ -f "$OUT" ] || OUT="$HERE/Birthday Calendar.html"
+MSG="The calendar is opening read-only: its background helper would not start, so classes cannot be switched or imported from the page. Use Import Students in the app folder for now."
+[ -s "$STATE/server.err" ] && MSG="$MSG  There is a reason in ~/Library/Application Support/BirthdayReminder/server.err"
+osascript -e "display alert \"Student Birthdays\" message \"$MSG\"" >/dev/null 2>&1
+if [ -f "$OUT" ]; then exec "$MAC/app-window" "file://$OUT" 1280 900; fi
+osascript -e 'display alert "Student Birthdays" message "Could not build the calendar. Keep this app in the same folder as Birthday Reminder.app."' >/dev/null 2>&1
+exit 1

@@ -1,0 +1,47 @@
+#!/bin/bash
+# Rebuilds "Birthday Calendar.html" from students.csv. Run it after editing the CSV.
+set -uo pipefail
+SELF="${BASH_SOURCE[0]}"; while [ -L "$SELF" ]; do SELF="$(readlink "$SELF")"; done
+MACOS_DIR="$(cd "$(dirname "$SELF")" && pwd)"
+BASE="$(cd "$MACOS_DIR/../../.." && pwd)"
+RES="$(cd "$MACOS_DIR/../Resources" && pwd)"
+# ---------------------------------------------------------------- active profile
+ACTIVE=""
+[ -f "$BASE/active_profile" ] && ACTIVE="$(head -n1 "$BASE/active_profile" | tr -d '\r\n')"
+PROFILE_DIR=""
+[ -n "$ACTIVE" ] && [ -d "$BASE/Profiles/$ACTIVE" ] && PROFILE_DIR="$BASE/Profiles/$ACTIVE"
+if [ -z "$PROFILE_DIR" ]; then          # no note of which class, or it has been deleted
+  for d in "$BASE/Profiles"/*/; do
+    [ -f "$d/students.csv" ] || continue
+    PROFILE_DIR="${d%/}"; ACTIVE="$(basename "$PROFILE_DIR")"; break
+  done
+fi
+if [ -n "$PROFILE_DIR" ]; then
+  DATA="$PROFILE_DIR/students.csv"; PHOTOS="$PROFILE_DIR/photos"
+  PHOTO_REL="Profiles/$ACTIVE/photos/"
+else
+  DATA="/dev/null"; PHOTOS=""; PHOTO_REL="photos/"      # nothing imported yet
+fi
+OUT="$BASE/Birthday Calendar.html"
+TPL="$RES/calendar-template.html"
+
+rows="$(awk -F, '
+  { gsub(/\r/,""); sub(/^\xef\xbb\xbf/,"") }
+  function j(s){ gsub(/\\/,"\\\\",s); gsub(/"/,"\\\"",s); return s }
+  NR>1 && $1 != "" {
+    first = ($3 != "" ? $3 : $1)
+    legal = ($3 != "" ? $1 " " $2 : "")
+    printf "%s{\"name\":\"%s %s\",\"legal\":\"%s\",\"d\":%d,\"m\":%d,\"by\":%d,\"yg\":\"%s\",\"form\":\"%s\",\"house\":\"%s\",\"tutee\":%s,\"photo\":\"%s\"}",
+      (n++ ? "," : ""), j(first), j($2), j(legal), $4+0, $5+0, $6+0, j($7), j($8), j($9), ($10 != "" ? "true" : "false"), j($11)
+  }' "$DATA")"
+
+awk '/\/\*__DATA__\*\//{exit} {print}' "$TPL" > "$OUT"
+{
+  printf 'const STUDENTS = [%s];\n' "$rows"
+  printf 'const PHOTO_BASE = "%s";\n' "$(printf '%s' "$PHOTO_REL" | sed 's/ /%20/g')"
+  printf 'const PROFILE = "%s";\n' "${ACTIVE:-}"
+  SRV="$HOME/Library/Application Support/BirthdayReminder/server.url"
+  printf 'const LAST_URL = "%s";\n' "$([ -f "$SRV" ] && head -n1 "$SRV" || true)"
+} >> "$OUT"
+awk 'f{print} /\/\*__DATA__\*\//{f=1}' "$TPL" >> "$OUT"
+echo "$OUT"

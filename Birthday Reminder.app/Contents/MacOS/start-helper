@@ -1,0 +1,32 @@
+#!/bin/bash
+# Prints a live calendar URL, starting the background helper if it is not up.
+# Exits 1 (printing nothing) if it cannot get one.
+HERE="${1:?}"
+RES="$HERE/Birthday Reminder.app/Contents/Resources"
+STATE="$HOME/Library/Application Support/BirthdayReminder"
+URLFILE="$STATE/server.url"; ERRFILE="$STATE/server.err"
+mkdir -p "$STATE"
+alive() { [ -n "$1" ] && curl -fsS -m 3 -o /dev/null "$1" 2>/dev/null; }
+
+if [ -f "$URLFILE" ]; then
+  U="$(head -n1 "$URLFILE")"
+  alive "$U" && { printf '%s\n' "$U"; exit 0; }
+  rm -f "$URLFILE"
+fi
+
+PY=""
+for c in /usr/bin/python3 /usr/local/bin/python3 /opt/homebrew/bin/python3; do
+  [ -x "$c" ] && "$c" -c 'import http.server' >/dev/null 2>&1 && { PY="$c"; break; }
+done
+if [ -z "$PY" ] && command -v python3 >/dev/null 2>&1; then
+  python3 -c 'import http.server' >/dev/null 2>&1 && PY="python3"
+fi
+[ -z "$PY" ] && exit 1
+[ -f "$RES/serve.py" ] || exit 1
+
+: > "$ERRFILE"; rm -f "$URLFILE"
+"$PY" "$RES/serve.py" "$HERE" --daemon "$URLFILE" "$ERRFILE"
+U=""
+for _ in $(seq 1 50); do [ -s "$URLFILE" ] && U="$(head -n1 "$URLFILE")" && break; sleep 0.1; done
+for _ in $(seq 1 20); do alive "$U" && { printf '%s\n' "$U"; exit 0; }; sleep 0.15; done
+exit 1
