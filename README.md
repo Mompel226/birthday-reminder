@@ -1,6 +1,7 @@
 # Birthday Reminder
 
-Your students' birthdays, and a window that finds you instead of the other way round.
+Your students' birthdays, and a window that finds you instead of the other way round. Export two
+files from iSAMS, open the app, and a whole year of birthdays is set up in **under five minutes**.
 
 > ## ⚠️ You need iSAMS
 >
@@ -28,26 +29,24 @@ lesson, without you remembering to go and look.
 
 ## What it does
 
-- **It comes to you.** It checks when you log in, and within five minutes of you opening the lid —
-  which is the one that matters. Once you have seen it in the morning, it leaves you alone for the
-  rest of the day.
-- **It knows what counts as morning.** Seeing it at 00:05 because you were still working does not
-  count; it shows again on your first lid-open after 6am.
-- **Friday covers the weekend,** so you can say it to their face on the Friday rather than three
-  days late.
-- **It catches up.** If the Mac was shut over a birthday, it tells you when you next open it.
-- **A calendar to look at properly** — by month, by year, or as a list; searchable; filtered to a
-  year group or to your own tutor group.
-- **Preferred names.** One panel, every student, a box for what you actually call them. It saves as
-  you type. This is the panel to open the week the school publishes its new lists.
+- **It comes to you.** It checks when you log in, and within five minutes of you opening the lid.
+  Once you have seen it in the morning it leaves you alone for the rest of the day.
+- **It knows what counts as morning.** Seeing it at five past midnight because you were still
+  working does not count — it shows again when you next open the Mac after 6am.
+- **Weekend birthdays come up on the Friday,** so you can say it in person instead of three days
+  late.
+- **If the Mac was shut** over someone's birthday, it tells you who you missed.
+- **A calendar of the whole year** — by month, by year, or as a list. Searchable, and filtered to
+  one year group or to your own tutor group.
+- **One place for preferred names.** Every student, with a box for what you actually call them,
+  saved as you type. This is the panel to open the week the new lists come out.
 
-## Discreet mode — the feature to know about
+## It hides names when a projector is plugged in
 
-If the app notices a second display or mirroring — a projector, in other words — it shows a plain
-card saying *"1 birthday to see"*, with no name and no photograph until you click. A birthday
-reminder that puts a child's face on the board in front of thirty people is worse than no reminder
-at all. It is on by default, and it is `DISCREET_MODE` in the settings file if you want it always
-on, or off.
+If the app sees a second screen or mirroring, it shows a plain card saying *"1 birthday to see"* —
+no name, no photograph — until you click it. Putting a child's face on the board in front of thirty
+people is worse than no reminder at all. This is on by default; `DISCREET_MODE` in the settings file
+turns it always on, or off.
 
 ## Settings you can actually change
 
