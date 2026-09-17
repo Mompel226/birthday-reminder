@@ -2,6 +2,21 @@
 
 Your students' birthdays, and a window that finds you instead of the other way round.
 
+> ## ⚠️ You need iSAMS
+>
+> This is built around exports from **iSAMS**, the school management system. **If your school does
+> not use iSAMS, this will not work** — there is nowhere for it to get your class from.
+>
+> The photographs are the part that cannot be replaced: they come out of the iSAMS **Student ID
+> Badge** report, and nothing else produces that file.
+>
+> If your school runs a different MIS it *may* still manage the names and dates of birth — the reader takes an
+> Excel file and looks for `Surname` and `Forename` columns, accepting the usual variants
+> (`Last Name`, `Given Name`, `Known As`, `Date of Birth`, `Form`, `Tutor Group`, `House`). That
+> route is untested against anything but iSAMS, and it will not bring the photographs with it.
+>
+> Please check this before you spend time downloading it.
+
 Wishing a fourteen-year-old a happy birthday costs nothing and lands more than most things a teacher
 does that week. The reason it does not happen is never that you did not care — it is that nobody
 told you in time. This is a small Mac app whose whole job is to tell you, in the morning, before the
@@ -80,9 +95,11 @@ wherever the folder was when you installed it.
 
 ## Requirements
 
-macOS, and a class list — the iSAMS Export Wizard file for names and dates of birth, and the Student
-ID Badge report if you want the photographs. Built from Swift and Python, both already on your Mac:
-nothing to install first, nothing to keep up to date.
+- **iSAMS** — see the notice at the top. The **Export Wizard** file carries the names and dates of
+  birth; the **Student ID Badge** report carries the photographs. Choose **Excel** whenever iSAMS
+  offers you a format.
+- **macOS.** Built from Swift and Python, both already on your Mac: nothing to install first,
+  nothing to keep up to date.
 
 ## Made by
 
